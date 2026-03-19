@@ -4,13 +4,32 @@ class DiscourseFitnessChallenge::AdminFitnessDashboardController < Admin::AdminC
   requires_plugin DiscourseFitnessChallenge::PLUGIN_NAME
 
   def show
-    challenge = FitnessChallenge.active.includes(:topic, check_ins: :user).first
+    today = Date.current
 
-    if challenge.nil?
-      render json: { challenge: nil, leaderboard: [], stats: {} }
-      return
-    end
+    active_challenges =
+      FitnessChallenge.active.includes(:topic, check_ins: :user).select(&:active?)
 
+    archived_batch =
+      FitnessChallenge
+        .where("end_date < ?", today)
+        .includes(:topic)
+        .order(end_date: :desc)
+        .limit(51)
+        .to_a
+
+    archived_has_more = archived_batch.size == 51
+    archived_challenges = archived_batch.first(50)
+
+    render json: {
+             active_challenges: active_challenges.map { |c| serialize_active_challenge(c) },
+             archived_challenges: archived_challenges.map { |c| serialize_archived_challenge(c) },
+             archived_has_more: archived_has_more,
+           }
+  end
+
+  private
+
+  def serialize_active_challenge(challenge)
     check_ins_by_user = challenge.check_ins.group_by(&:user_id)
     today = Date.current
 
@@ -24,7 +43,6 @@ class DiscourseFitnessChallenge::AdminFitnessDashboardController < Admin::AdminC
           {
             user_id: user_id,
             username: user.username,
-            name: user.name.presence || user.username,
             avatar_template: user.avatar_template,
             total_check_ins: dates.size,
             streak: calculate_streak(dates, today),
@@ -40,28 +58,58 @@ class DiscourseFitnessChallenge::AdminFitnessDashboardController < Admin::AdminC
     avg_check_ins =
       total > 0 ? (leaderboard.sum { |e| e[:total_check_ins] }.to_f / total).round(1) : 0
 
-    render json: {
-             challenge: {
-               id: challenge.id,
-               hashtag: challenge.hashtag,
-               check_ins_needed: challenge.check_ins_needed,
-               start_date: challenge.start_date.iso8601,
-               end_date: challenge.end_date.iso8601,
-               elapsed_days: challenge.elapsed_days,
-               total_days: (challenge.end_date - challenge.start_date).to_i,
-               topic_url: challenge.topic&.relative_url,
-               topic_title: challenge.topic&.title,
-             },
-             leaderboard: leaderboard,
-             stats: {
-               total_participants: total,
-               avg_check_ins: avg_check_ins,
-               progress_pct: challenge_progress_pct(challenge),
-             },
-           }
+    {
+      challenge: {
+        id: challenge.id,
+        hashtag: challenge.hashtag,
+        check_ins_needed: challenge.check_ins_needed,
+        start_date: challenge.start_date.iso8601,
+        end_date: challenge.end_date.iso8601,
+        elapsed_days: challenge.elapsed_days,
+        total_days: (challenge.end_date - challenge.start_date).to_i,
+        topic_url: challenge.topic&.relative_url,
+        topic_title: challenge.topic&.title,
+      },
+      leaderboard: leaderboard,
+      stats: {
+        total_participants: total,
+        avg_check_ins: avg_check_ins,
+        progress_pct: challenge_progress_pct(challenge),
+      },
+    }
   end
 
-  private
+  def serialize_archived_challenge(challenge)
+    counts_by_user = challenge.check_ins.group(:user_id).count
+    total = counts_by_user.size
+    completed = counts_by_user.count { |_, count| count >= challenge.check_ins_needed }
+    completion_rate = total > 0 ? ((completed.to_f / total) * 100).round(1) : 0
+
+    winner = nil
+    if counts_by_user.any?
+      winner_id, winner_count = counts_by_user.max_by { |_, c| c }
+      winner_user = User.find_by(id: winner_id)
+      if winner_user
+        winner = {
+          username: winner_user.username,
+          avatar_template: winner_user.avatar_template,
+          total_check_ins: winner_count,
+        }
+      end
+    end
+
+    {
+      id: challenge.id,
+      hashtag: challenge.hashtag,
+      start_date: challenge.start_date.iso8601,
+      end_date: challenge.end_date.iso8601,
+      topic_title: challenge.topic&.title,
+      topic_url: challenge.topic&.relative_url,
+      total_participants: total,
+      winner: winner,
+      completion_rate: completion_rate,
+    }
+  end
 
   def completion_pct(check_ins, needed)
     return 0 if needed <= 0
@@ -74,11 +122,8 @@ class DiscourseFitnessChallenge::AdminFitnessDashboardController < Admin::AdminC
     ((challenge.elapsed_days.to_f / total_days) * 100).round(1)
   end
 
-  # Count the longest run of consecutive days ending on today or yesterday.
   def calculate_streak(sorted_dates, today)
     return 0 if sorted_dates.empty?
-
-    # Streak must touch today or yesterday, otherwise it's broken
     return 0 if sorted_dates.last < today - 1
 
     streak = 0
@@ -86,7 +131,6 @@ class DiscourseFitnessChallenge::AdminFitnessDashboardController < Admin::AdminC
 
     sorted_dates.reverse_each do |date|
       break if date != expected
-
       streak += 1
       expected -= 1
     end

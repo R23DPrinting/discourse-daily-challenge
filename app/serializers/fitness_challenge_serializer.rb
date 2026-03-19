@@ -43,23 +43,19 @@ class FitnessChallengeSerializer < ApplicationSerializer
   end
 
   def leaderboard
-    object
-      .check_ins
-      .group(:user_id)
-      .order("count_all DESC")
-      .count
-      .first(10)
-      .map do |user_id, count|
-        user = User.find_by(id: user_id)
-        next unless user
-        {
-          user_id: user_id,
-          username: user.username,
-          name: user.name.presence || user.username,
-          avatar_template: user.avatar_template,
-          check_in_count: count,
-        }
-      end
-      .compact
+    top = object.check_ins.group(:user_id).order("count_all DESC").count.first(10)
+    users_by_id = User.where(id: top.map(&:first)).index_by(&:id)
+
+    top.filter_map do |user_id, count|
+      user = users_by_id[user_id]
+      next unless user
+      {
+        user_id: user_id,
+        username: user.username,
+        name: user.name.presence || user.username,
+        avatar_template: user.avatar_template,
+        check_in_count: count,
+      }
+    end
   end
 end

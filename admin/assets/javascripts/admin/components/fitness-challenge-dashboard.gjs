@@ -28,19 +28,20 @@ class ProgressBar extends Component {
   </template>
 }
 
-export default class FitnessChallengeDashboard extends Component {
+// Renders one active challenge: stats tiles + expandable leaderboard rows.
+class FitnessChallengeSection extends Component {
   @tracked selectedUserId = null;
 
   get challenge() {
-    return this.args.dashboard?.challenge;
+    return this.args.data.challenge;
   }
 
   get leaderboard() {
-    return this.args.dashboard?.leaderboard ?? [];
+    return this.args.data.leaderboard ?? [];
   }
 
   get stats() {
-    return this.args.dashboard?.stats ?? {};
+    return this.args.data.stats ?? {};
   }
 
   get selectedUser() {
@@ -109,6 +110,166 @@ export default class FitnessChallengeDashboard extends Component {
   }
 
   <template>
+    <div class="fcd-section">
+      <div class="fcd-section__header">
+        <span class="fcd-challenge-meta__hashtag">#{{this.challenge.hashtag}}</span>
+        {{#if this.challenge.topic_title}}
+          <a
+            href={{this.challenge.topic_url}}
+            class="fcd-challenge-meta__topic"
+            target="_blank"
+            rel="noopener noreferrer"
+          >{{this.challenge.topic_title}}</a>
+        {{/if}}
+        <span class="fcd-challenge-meta__progress">
+          {{i18n
+            "fitness_challenge.dashboard.day_progress"
+            elapsed=this.challenge.elapsed_days
+            total=this.challenge.total_days
+          }}
+        </span>
+      </div>
+
+      <DStatTiles class="fcd-stats" as |tiles|>
+        <tiles.Tile
+          @label={{i18n "fitness_challenge.dashboard.stats.participants"}}
+          @value={{this.stats.total_participants}}
+        />
+        <tiles.Tile
+          @label={{i18n "fitness_challenge.dashboard.stats.avg_check_ins"}}
+          @value={{this.stats.avg_check_ins}}
+        />
+        <tiles.Tile
+          @label={{i18n "fitness_challenge.dashboard.stats.progress"}}
+          @value={{this.stats.progress_pct}}
+        />
+      </DStatTiles>
+
+      {{#if (gt this.leaderboard.length 0)}}
+        <div class="fcd-leaderboard">
+          <table class="fcd-leaderboard__table">
+            <thead>
+              <tr>
+                <th class="fcd-leaderboard__th--rank">
+                  {{i18n "fitness_challenge.dashboard.col.rank"}}
+                </th>
+                <th class="fcd-leaderboard__th--user">
+                  {{i18n "fitness_challenge.dashboard.col.participant"}}
+                </th>
+                <th class="fcd-leaderboard__th--checkins">
+                  {{i18n "fitness_challenge.dashboard.col.check_ins"}}
+                </th>
+                <th class="fcd-leaderboard__th--streak">
+                  {{i18n "fitness_challenge.dashboard.col.streak"}}
+                </th>
+                <th class="fcd-leaderboard__th--completion">
+                  {{i18n "fitness_challenge.dashboard.col.completion"}}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each this.leaderboard as |entry|}}
+                <tr
+                  class={{concatClass
+                    "fcd-leaderboard__row"
+                    (if (eq this.selectedUserId entry.user_id) "is-expanded")
+                  }}
+                  role="button"
+                  tabindex="0"
+                  {{on "click" (fn this.toggleUser entry.user_id)}}
+                >
+                  <td class="fcd-leaderboard__rank">
+                    {{#if (eq entry.rank 1)}}
+                      <span class="fcd-rank fcd-rank--gold">1</span>
+                    {{else if (eq entry.rank 2)}}
+                      <span class="fcd-rank fcd-rank--silver">2</span>
+                    {{else if (eq entry.rank 3)}}
+                      <span class="fcd-rank fcd-rank--bronze">3</span>
+                    {{else}}
+                      <span class="fcd-rank">{{entry.rank}}</span>
+                    {{/if}}
+                  </td>
+                  <td class="fcd-leaderboard__user">
+                    {{avatar entry imageSize="tiny"}}
+                    <span class="fcd-leaderboard__username">{{entry.username}}</span>
+                  </td>
+                  <td class="fcd-leaderboard__checkins">
+                    {{entry.total_check_ins}}
+                  </td>
+                  <td class="fcd-leaderboard__streak">
+                    {{#if entry.streak}}
+                      {{icon "fire" class="fcd-streak-icon"}}
+                      {{entry.streak}}
+                    {{else}}
+                      <span class="fcd-streak-none">—</span>
+                    {{/if}}
+                  </td>
+                  <td class="fcd-leaderboard__completion">
+                    <ProgressBar @pct={{entry.completion_pct}} />
+                  </td>
+                </tr>
+
+                {{#if (eq this.selectedUserId entry.user_id)}}
+                  <tr class="fcd-history-row">
+                    <td colspan="5">
+                      <div class="fcd-history">
+                        <p class="fcd-history__summary">
+                          {{i18n
+                            "fitness_challenge.dashboard.history.summary"
+                            username=entry.username
+                            count=entry.total_check_ins
+                            streak=entry.streak
+                          }}
+                        </p>
+                        <div class="fcd-history__grid-wrap">
+                          <div class="fcd-history__grid">
+                            {{#each this.checkInGrid as |week|}}
+                              <div class="fcd-history__week">
+                                {{#each week as |day|}}
+                                  <div
+                                    class={{concatClass
+                                      "fcd-history__day"
+                                      (if day.checkedIn "is-checked")
+                                      (unless day.inChallenge "is-outside")
+                                    }}
+                                    title={{day.label}}
+                                  ></div>
+                                {{/each}}
+                              </div>
+                            {{/each}}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                {{/if}}
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+      {{else}}
+        <p class="admin-plugin-config-area__empty-list">
+          {{i18n "fitness_challenge.dashboard.no_participants"}}
+        </p>
+      {{/if}}
+    </div>
+  </template>
+}
+
+export default class FitnessChallengeDashboard extends Component {
+  get activeChallenges() {
+    return this.args.dashboard?.active_challenges ?? [];
+  }
+
+  get archivedChallenges() {
+    return this.args.dashboard?.archived_challenges ?? [];
+  }
+
+  get archivedHasMore() {
+    return this.args.dashboard?.archived_has_more ?? false;
+  }
+
+  <template>
     <DBreadcrumbsItem
       @path="/admin/plugins/discourse-fitness-challenge/dashboard"
       @label={{i18n "fitness_challenge.dashboard.title"}}
@@ -117,152 +278,88 @@ export default class FitnessChallengeDashboard extends Component {
     <div class="fitness-challenge-dashboard admin-detail">
       <DPageSubheader @titleLabel={{i18n "fitness_challenge.dashboard.title"}} />
 
-      {{#if this.challenge}}
-        <div class="fcd-challenge-meta">
-          <span class="fcd-challenge-meta__hashtag">#{{this.challenge.hashtag}}</span>
-          {{#if this.challenge.topic_title}}
-            <a
-              href={{this.challenge.topic_url}}
-              class="fcd-challenge-meta__topic"
-              target="_blank"
-              rel="noopener noreferrer"
-            >{{this.challenge.topic_title}}</a>
-          {{/if}}
-          <span class="fcd-challenge-meta__progress">
-            {{i18n
-              "fitness_challenge.dashboard.day_progress"
-              elapsed=this.challenge.elapsed_days
-              total=this.challenge.total_days
-            }}
-          </span>
-        </div>
-
-        <DStatTiles class="fcd-stats" as |tiles|>
-          <tiles.Tile
-            @label={{i18n "fitness_challenge.dashboard.stats.participants"}}
-            @value={{this.stats.total_participants}}
-          />
-          <tiles.Tile
-            @label={{i18n "fitness_challenge.dashboard.stats.avg_check_ins"}}
-            @value={{this.stats.avg_check_ins}}
-          />
-          <tiles.Tile
-            @label={{i18n "fitness_challenge.dashboard.stats.progress"}}
-            @value={{this.stats.progress_pct}}
-          />
-        </DStatTiles>
-
-        {{#if (gt this.leaderboard.length 0)}}
-          <div class="fcd-leaderboard">
-            <table class="fcd-leaderboard__table">
-              <thead>
-                <tr>
-                  <th class="fcd-leaderboard__th--rank">
-                    {{i18n "fitness_challenge.dashboard.col.rank"}}
-                  </th>
-                  <th class="fcd-leaderboard__th--user">
-                    {{i18n "fitness_challenge.dashboard.col.participant"}}
-                  </th>
-                  <th class="fcd-leaderboard__th--checkins">
-                    {{i18n "fitness_challenge.dashboard.col.check_ins"}}
-                  </th>
-                  <th class="fcd-leaderboard__th--streak">
-                    {{i18n "fitness_challenge.dashboard.col.streak"}}
-                  </th>
-                  <th class="fcd-leaderboard__th--completion">
-                    {{i18n "fitness_challenge.dashboard.col.completion"}}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {{#each this.leaderboard as |entry|}}
-                  <tr
-                    class={{concatClass
-                      "fcd-leaderboard__row"
-                      (if (eq this.selectedUserId entry.user_id) "is-expanded")
-                    }}
-                    role="button"
-                    tabindex="0"
-                    {{on "click" (fn this.toggleUser entry.user_id)}}
-                  >
-                    <td class="fcd-leaderboard__rank">
-                      {{#if (eq entry.rank 1)}}
-                        <span class="fcd-rank fcd-rank--gold">1</span>
-                      {{else if (eq entry.rank 2)}}
-                        <span class="fcd-rank fcd-rank--silver">2</span>
-                      {{else if (eq entry.rank 3)}}
-                        <span class="fcd-rank fcd-rank--bronze">3</span>
-                      {{else}}
-                        <span class="fcd-rank">{{entry.rank}}</span>
-                      {{/if}}
-                    </td>
-                    <td class="fcd-leaderboard__user">
-                      {{avatar entry imageSize="tiny"}}
-                      <span class="fcd-leaderboard__username">{{entry.username}}</span>
-                    </td>
-                    <td class="fcd-leaderboard__checkins">
-                      {{entry.total_check_ins}}
-                    </td>
-                    <td class="fcd-leaderboard__streak">
-                      {{#if entry.streak}}
-                        {{icon "fire" class="fcd-streak-icon"}}
-                        {{entry.streak}}
-                      {{else}}
-                        <span class="fcd-streak-none">—</span>
-                      {{/if}}
-                    </td>
-                    <td class="fcd-leaderboard__completion">
-                      <ProgressBar @pct={{entry.completion_pct}} />
-                    </td>
-                  </tr>
-
-                  {{#if (eq this.selectedUserId entry.user_id)}}
-                    <tr class="fcd-history-row">
-                      <td colspan="5">
-                        <div class="fcd-history">
-                          <p class="fcd-history__summary">
-                            {{i18n
-                              "fitness_challenge.dashboard.history.summary"
-                              username=entry.username
-                              count=entry.total_check_ins
-                              streak=entry.streak
-                            }}
-                          </p>
-                          <div class="fcd-history__grid-wrap">
-                            <div class="fcd-history__grid">
-                              {{#each this.checkInGrid as |week|}}
-                                <div class="fcd-history__week">
-                                  {{#each week as |day|}}
-                                    <div
-                                      class={{concatClass
-                                        "fcd-history__day"
-                                        (if day.checkedIn "is-checked")
-                                        (unless day.inChallenge "is-outside")
-                                      }}
-                                      title={{day.label}}
-                                    ></div>
-                                  {{/each}}
-                                </div>
-                              {{/each}}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  {{/if}}
-                {{/each}}
-              </tbody>
-            </table>
-          </div>
-        {{else}}
-          <p class="admin-plugin-config-area__empty-list">
-            {{i18n "fitness_challenge.dashboard.no_participants"}}
-          </p>
-        {{/if}}
+      {{#if (gt this.activeChallenges.length 0)}}
+        {{#each this.activeChallenges as |data|}}
+          <FitnessChallengeSection @data={{data}} />
+        {{/each}}
       {{else}}
         <p class="admin-plugin-config-area__empty-list">
           {{i18n "fitness_challenge.dashboard.no_active_challenge"}}
         </p>
+      {{/if}}
+
+      {{#if (gt this.archivedChallenges.length 0)}}
+        <div class="fcd-archived">
+          <h3 class="fcd-archived__title">
+            {{i18n "fitness_challenge.dashboard.archived.title"}}
+          </h3>
+          {{#each this.archivedChallenges as |archived|}}
+            <details class="fcd-archived__item">
+              <summary class="fcd-archived__summary">
+                <span class="fcd-archived__summary-hashtag">
+                  #{{archived.hashtag}}
+                </span>
+                {{#if archived.topic_title}}
+                  <span class="fcd-archived__summary-name">
+                    {{archived.topic_title}}
+                  </span>
+                {{/if}}
+                <span class="fcd-archived__summary-dates">
+                  {{i18n
+                    "fitness_challenge.dashboard.archived.dates"
+                    start=archived.start_date
+                    end=archived.end_date
+                  }}
+                </span>
+              </summary>
+
+              <div class="fcd-archived__body">
+                <ul class="fcd-archived__stats">
+                  <li>
+                    {{i18n
+                      "fitness_challenge.dashboard.archived.participants_count"
+                      count=archived.total_participants
+                    }}
+                  </li>
+                  {{#if archived.winner}}
+                    <li>
+                      {{avatar archived.winner imageSize="tiny"}}
+                      {{i18n
+                        "fitness_challenge.dashboard.archived.winner"
+                        username=archived.winner.username
+                        count=archived.winner.total_check_ins
+                      }}
+                    </li>
+                  {{else}}
+                    <li>{{i18n "fitness_challenge.dashboard.archived.no_participants"}}</li>
+                  {{/if}}
+                  <li>
+                    {{i18n
+                      "fitness_challenge.dashboard.archived.completion_rate"
+                      rate=archived.completion_rate
+                    }}
+                  </li>
+                </ul>
+                {{#if archived.topic_url}}
+                  <a
+                    href={{archived.topic_url}}
+                    class="fcd-archived__topic-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {{icon "arrow-up-right-from-square"}}
+                    {{i18n "fitness_challenge.dashboard.archived.view_topic"}}
+                  </a>
+                {{/if}}
+              </div>
+            </details>
+          {{/each}}
+          {{#if this.archivedHasMore}}
+            <p class="fcd-archived__overflow-notice">
+              {{i18n "fitness_challenge.dashboard.archived.overflow"}}
+            </p>
+          {{/if}}
+        </div>
       {{/if}}
     </div>
   </template>

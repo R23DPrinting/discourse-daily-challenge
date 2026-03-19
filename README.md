@@ -1,22 +1,30 @@
 # Discourse Fitness Challenge
 
+![Version](https://img.shields.io/badge/version-v1.1.1-blue)
+
 A Discourse plugin for running time-limited fitness challenges. Participants check in by posting with a challenge hashtag or uploading a workout photo. Admins get a real-time leaderboard dashboard, automated weekly progress posts, a final results announcement, and optional badge awards for completers.
 
 ## Screenshots
 
 _Screenshots coming soon._
 
+| Dashboard — active challenges | Archived challenges |
+|---|---|
+| _(placeholder)_ | _(placeholder)_ |
+
 ## Features
 
 - **Hashtag or photo check-ins** — participants check in by posting with the configured hashtag (e.g. `#workout`) or by uploading any image to the challenge topic
 - **One check-in per day** — enforced at both the application and database level; duplicate check-ins are silently ignored
-- **Real-time admin dashboard** — leaderboard with rank, check-in count, current streak, and a GitHub-style contribution grid per participant
-- **Automated weekly leaderboard posts** — posted to the challenge topic by the system user on a configurable day and hour (UTC)
+- **Real-time admin dashboard** — shows all active challenges simultaneously, each with its own stats, leaderboard, and per-participant contribution grid
+- **Archived challenges accordion** — past challenges collapsed into an expandable section showing final participant count, winner, and completion rate
+- **Per-challenge timezone** — start/end dates, weekly post timing, and check-in windows are all evaluated in the challenge's configured timezone
+- **Automated weekly leaderboard posts** — posted to the challenge topic by the system user on a configurable day and hour
 - **Final results post** — automatically posted the day after the challenge ends, listing all participants who met the goal
 - **Badge awards** — optionally award a custom Discourse badge to every participant who reaches the check-in goal
 - **Manual leaderboard trigger** — admins can post the leaderboard at any time from the challenge management page
 - **Admin check-in management** — add or remove check-ins for any user from the admin panel (for missed posts, support requests, etc.)
-- **Per-challenge configuration** — each challenge has its own hashtag, dates, check-in goal, weekly post schedule, and badge settings
+- **Per-challenge configuration** — each challenge has its own hashtag, dates, timezone, check-in goal, weekly post schedule, and badge settings
 
 ## Installation
 
@@ -43,7 +51,7 @@ Then rebuild your container:
 
 | Setting | Description |
 |---|---|
-| `fitness_challenge_enabled` | Master on/off switch for the plugin |
+| `fitness_challenge_enabled` | Master on/off switch for the plugin (default: enabled) |
 
 ### Creating a Challenge
 
@@ -51,17 +59,18 @@ Go to **Admin → Plugins → Fitness Challenge → Challenges → New Challenge
 
 | Field | Description |
 |---|---|
-| **Topic ID** | The ID of the Discourse topic where participants will post. The plugin will display the topic title as a confirmation after you enter the ID. |
+| **Topic ID** | The ID of the Discourse topic where participants will post. The plugin fetches and displays the topic title as a confirmation after you enter the ID. |
 | **Hashtag trigger** | The hashtag (without `#`) that triggers a check-in when included in a post. Only letters, digits, and underscores are allowed. |
 | **Start date** | The first day of the challenge (inclusive). |
-| **End date** | The last day of the challenge (exclusive — the challenge runs through the end of the day before this date). |
+| **End date** | The last day of the challenge (exclusive — the challenge runs through the end of the day before this date). Must be after the start date. |
+| **Challenge timezone** | Timezone used for all date boundaries, weekly post timing, and the final post trigger. Defaults to UTC. |
 | **Check-ins needed** | The number of check-ins required to complete the challenge and qualify for the badge. |
 | **Description** | Optional internal note about the challenge (not shown to participants). |
 | **Enable weekly leaderboard post** | When enabled, the system automatically posts a leaderboard update to the challenge topic on a schedule. |
-| **Post day of week** | Day the weekly post is published (Sunday–Saturday, UTC). |
-| **Post hour (0–23 UTC)** | Hour the weekly post is published (UTC). |
-| **Award completion badge** | When enabled, a Discourse badge is created and automatically granted to participants who reach the check-in goal when the challenge ends. |
-| **Badge name** | Name of the badge to create (e.g. "March Fitness Champion"). |
+| **Post day of week** | Day the weekly post is published (Sunday–Saturday, in the challenge timezone). |
+| **Post hour (0-23)** | Hour the weekly post is published, in the challenge timezone. |
+| **Award completion badge** | When enabled, a Discourse badge is created and automatically granted to participants who reach the check-in goal when the challenge ends. Requires a badge name. |
+| **Badge name** | Name of the badge to create (e.g. "March Fitness Champion"). Required when "Award completion badge" is enabled. |
 
 ## How Check-ins Work
 
@@ -71,23 +80,35 @@ A check-in is recorded automatically when a participant posts in the linked topi
 2. **Image upload** — the post includes an image attachment (jpg, jpeg, png, gif, webp, heic, or avif).
 
 **Rules:**
-- Only one check-in is recorded per user per calendar day (based on the user's configured timezone, or UTC if none is set).
-- Check-ins are only recorded while the challenge is active (between start date and end date).
+- Only one check-in is recorded per user per calendar day (based on the user's configured timezone in their Discourse preferences, or UTC if none is set).
+- Check-ins are only recorded while the challenge is active (between start date and end date, evaluated in the challenge's timezone).
 - Anonymous users cannot check in.
 - System posts and non-regular posts are ignored.
 
 ## Admin Dashboard
 
-The dashboard (**Admin → Plugins → Fitness Challenge → Dashboard**) shows the currently active challenge with:
+The dashboard (**Admin → Plugins → Fitness Challenge → Dashboard**) shows all currently active challenges. Each challenge gets its own section with:
 
-- **Challenge metadata** — hashtag, linked topic, and day progress
+- **Challenge header** — hashtag, linked topic title, and day progress
 - **Stats tiles** — total participants, average check-ins, and overall challenge progress percentage
-- **Leaderboard table** — ranked by total check-ins, showing streak and completion percentage for each participant
+- **Leaderboard table** — ranked by total check-ins, showing current streak and completion percentage per participant
 - **Contribution grid** — click any row to expand a GitHub-style heatmap of that participant's check-in history for the challenge period
+
+If there are no active challenges, a friendly message is shown with a link to create one.
+
+### Archived Challenges
+
+Below the active challenges, completed challenges are shown in a collapsible accordion. Each entry shows:
+
+- Challenge hashtag and topic title
+- Date range
+- Total participants, winner (most check-ins), and completion rate
+
+Expand any entry to see the details and a link to the original topic.
 
 ## Weekly Posts
 
-When **Enable weekly leaderboard post** is turned on for a challenge, the plugin posts a markdown leaderboard table to the challenge topic every week at the configured day and hour (UTC). The post is made by the system user and includes:
+When **Enable weekly leaderboard post** is turned on for a challenge, the plugin posts a markdown leaderboard table to the challenge topic every week at the configured day and hour (in the challenge's timezone). The post is made by the system user and includes:
 
 - The week's date range
 - Current day progress in the challenge
@@ -97,9 +118,9 @@ You can also trigger a leaderboard post manually at any time from the challenge 
 
 ## Final Results Post
 
-The day after a challenge ends, the plugin automatically posts a final results summary to the challenge topic. The post includes:
+The day after a challenge ends (evaluated in the challenge's timezone), the plugin automatically posts a final results summary to the challenge topic. The post includes:
 
-- A list of all participants who reached the check-in goal (eligible for the badge)
+- A list of all participants who reached the check-in goal
 - A summary of how many out of the total participants completed the challenge
 - Congratulations to completers, or an encouraging message if no one reached the goal
 
@@ -107,13 +128,13 @@ The final post is sent exactly once per challenge.
 
 ## Badge Awarding
 
-If **Award completion badge** is enabled and a **Badge name** is set, the plugin:
+If **Award completion badge** is enabled and a **Badge name** is provided, the plugin:
 
 1. Creates a Discourse badge (Silver tier) when the challenge is saved
 2. Automatically grants the badge to every participant who reaches the check-in goal when the final results post is published
 3. Updates the badge name and description if you edit the challenge settings
 
-The badge description is automatically set to reflect the linked topic title (e.g. "Awarded to participants who completed all required check-ins in March Fitness Challenge.").
+The badge description is automatically set to reference the linked topic title (e.g. "Awarded to participants who completed all required check-ins in March Fitness Challenge.").
 
 ## Admin Check-in Management
 
@@ -137,3 +158,17 @@ Manually added check-ins are marked with an "Admin" source label in the check-in
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
+## Changelog
+
+### v1.1.1
+- Multi-challenge dashboard showing all active challenges simultaneously
+- Archived challenges accordion showing historical results
+
+### v1.1.0
+- Per-challenge timezone support
+- Weekly post schedule now per-challenge (day, hour, enable/disable toggle)
+- Challenge timezone used for start/end date boundaries and final post timing
+
+### v1.0.0
+- Initial release

@@ -38,7 +38,7 @@ en:
           description_placeholder: "Describe the challenge…"
           weekly_post_enabled: "Enable weekly leaderboard post"
           weekly_post_day: "Post day of week"
-          weekly_post_hour: "Post hour (0-23 UTC)"
+          weekly_post_hour: "Post hour (0-23, challenge timezone)"
           award_badge: "Award completion badge"
           badge_name: "Badge name"
           badge_name_placeholder: "e.g. March Fitness Champion"
@@ -69,7 +69,7 @@ en:
       dashboard:
         title: "Dashboard"
         day_progress: "Day %{elapsed} of %{total}"
-        no_active_challenge: "No active challenge right now. Create one in the Challenges tab."
+        no_active_challenge: "No active challenges right now. Create one in the Challenges tab."
         no_participants: "No check-ins recorded yet."
         col:
           rank: "Rank"
@@ -86,3 +86,12 @@ en:
           mon: "M"
           wed: "W"
           fri: "F"
+        archived:
+          title: "Archived challenges"
+          dates: "%{start} – %{end}"
+          participants_count: "%{count} participants"
+          winner: "Winner: @%{username} with %{count} check-ins"
+          completion_rate: "%{rate}% completion rate"
+          no_participants: "No participants"
+          view_topic: "View topic"
+          overflow: "Showing 50 most recent. Older challenges are available via the admin API."
