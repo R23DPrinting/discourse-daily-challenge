@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class FitnessChallengeSerializer < ApplicationSerializer
+class DailyChallengeSerializer < ApplicationSerializer
   attributes :id,
              :topic_id,
              :topic_url,

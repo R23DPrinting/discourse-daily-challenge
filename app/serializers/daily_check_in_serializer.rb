@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class FitnessCheckInSerializer < ApplicationSerializer
+class DailyCheckInSerializer < ApplicationSerializer
   attributes :id,
              :challenge_id,
              :user_id,

@@ -1,4 +1,4 @@
 plugins:
-  fitness_challenge_enabled:
+  daily_challenge_enabled:
     default: true
     client: true

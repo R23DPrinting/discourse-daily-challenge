@@ -1,5 +1,5 @@
 en:
-  fitness_challenge:
+  daily_challenge:
     check_in:
       already_exists: "A check-in for this user on that date already exists."
     weekly_post:
@@ -24,4 +24,4 @@ en:
       description_with_topic: "Awarded to participants who completed all required check-ins in %{title}."
       description_fallback: "Awarded for successfully completing a fitness challenge."
   site_settings:
-    fitness_challenge_enabled: "Enable the Discourse Fitness Challenge plugin"
+    daily_challenge_enabled: "Enable the Discourse Daily Challenge plugin"

@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-class FitnessChallenge < ActiveRecord::Base
-  self.table_name = "fitness_challenges"
+class DailyChallenge < ActiveRecord::Base
+  self.table_name = "daily_challenges"
   self.ignored_columns = ["num_days"]
 
   belongs_to :topic
   has_many :check_ins,
-           class_name: "FitnessCheckIn",
+           class_name: "DailyCheckIn",
            foreign_key: :challenge_id,
            dependent: :destroy
 

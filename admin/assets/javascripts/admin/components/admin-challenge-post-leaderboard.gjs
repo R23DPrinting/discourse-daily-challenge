@@ -20,13 +20,13 @@ export default class AdminChallengePostLeaderboard extends Component {
     this.loading = true;
     try {
       await ajax(
-        `/admin/plugins/discourse-fitness-challenge/challenges/${this.args.challenge.id}/post_leaderboard`,
+        `/admin/plugins/discourse-daily-challenge/challenges/${this.args.challenge.id}/post_leaderboard`,
         { type: "POST" }
       );
       this.toasts.success({
         duration: "short",
         data: {
-          message: i18n("fitness_challenge.admin.challenges.leaderboard_posted"),
+          message: i18n("daily_challenge.admin.challenges.leaderboard_posted"),
         },
       });
     } catch (err) {
@@ -37,9 +37,9 @@ export default class AdminChallengePostLeaderboard extends Component {
   }
 
   <template>
-    <div class="fitness-challenge-admin__leaderboard-actions">
+    <div class="daily-challenge-admin__leaderboard-actions">
       <DButton
-        @label="fitness_challenge.admin.challenges.post_leaderboard"
+        @label="daily_challenge.admin.challenges.post_leaderboard"
         @icon="dumbbell"
         @action={{this.postLeaderboard}}
         @disabled={{this.loading}}

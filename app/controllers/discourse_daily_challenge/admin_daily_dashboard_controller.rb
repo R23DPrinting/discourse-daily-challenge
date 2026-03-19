@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-class DiscourseFitnessChallenge::AdminFitnessDashboardController < Admin::AdminController
-  requires_plugin DiscourseFitnessChallenge::PLUGIN_NAME
+class DiscourseDailyChallenge::AdminDailyDashboardController < Admin::AdminController
+  requires_plugin DiscourseDailyChallenge::PLUGIN_NAME
 
   def show
     today = Date.current
 
     active_challenges =
-      FitnessChallenge.active.includes(:topic, check_ins: :user).select(&:active?)
+      DailyChallenge.active.includes(:topic, check_ins: :user).select(&:active?)
 
     archived_batch =
-      FitnessChallenge
+      DailyChallenge
         .where("end_date < ?", today)
         .includes(:topic)
         .order(end_date: :desc)

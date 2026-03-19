@@ -1,9 +1,9 @@
 import { withPluginApi } from "discourse/lib/plugin-api";
 
-const PLUGIN_ID = "discourse-fitness-challenge";
+const PLUGIN_ID = "discourse-daily-challenge";
 
 export default {
-  name: "fitness-challenge-admin-nav",
+  name: "daily-challenge-admin-nav",
 
   initialize(container) {
     const currentUser = container.lookup("service:current-user");
@@ -14,12 +14,12 @@ export default {
     withPluginApi((api) => {
       api.addAdminPluginConfigurationNav(PLUGIN_ID, [
         {
-          label: "fitness_challenge.admin.nav.dashboard",
-          route: "adminPlugins.show.discourse-fitness-challenge-dashboard",
+          label: "daily_challenge.admin.nav.dashboard",
+          route: "adminPlugins.show.discourse-daily-challenge-dashboard",
         },
         {
-          label: "fitness_challenge.admin.nav.challenges",
-          route: "adminPlugins.show.discourse-fitness-challenge-challenges",
+          label: "daily_challenge.admin.nav.challenges",
+          route: "adminPlugins.show.discourse-daily-challenge-challenges",
         },
       ]);
     });

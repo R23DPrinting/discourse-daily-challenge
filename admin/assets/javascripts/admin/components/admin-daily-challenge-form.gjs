@@ -10,7 +10,7 @@ import { popupAjaxError } from "discourse/lib/ajax-error";
 import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 
-export default class AdminFitnessChallengeForm extends Component {
+export default class AdminDailyChallengeForm extends Component {
   @service toasts;
   @service router;
 
@@ -223,13 +223,13 @@ export default class AdminFitnessChallengeForm extends Component {
 
   get daysOfWeek() {
     return [
-      { value: 0, name: i18n("fitness_challenge.admin.form.days.sunday") },
-      { value: 1, name: i18n("fitness_challenge.admin.form.days.monday") },
-      { value: 2, name: i18n("fitness_challenge.admin.form.days.tuesday") },
-      { value: 3, name: i18n("fitness_challenge.admin.form.days.wednesday") },
-      { value: 4, name: i18n("fitness_challenge.admin.form.days.thursday") },
-      { value: 5, name: i18n("fitness_challenge.admin.form.days.friday") },
-      { value: 6, name: i18n("fitness_challenge.admin.form.days.saturday") },
+      { value: 0, name: i18n("daily_challenge.admin.form.days.sunday") },
+      { value: 1, name: i18n("daily_challenge.admin.form.days.monday") },
+      { value: 2, name: i18n("daily_challenge.admin.form.days.tuesday") },
+      { value: 3, name: i18n("daily_challenge.admin.form.days.wednesday") },
+      { value: 4, name: i18n("daily_challenge.admin.form.days.thursday") },
+      { value: 5, name: i18n("daily_challenge.admin.form.days.friday") },
+      { value: 6, name: i18n("daily_challenge.admin.form.days.saturday") },
     ];
   }
 
@@ -279,27 +279,27 @@ export default class AdminFitnessChallengeForm extends Component {
       let result;
       if (this.isEditing) {
         result = await ajax(
-          `/admin/plugins/discourse-fitness-challenge/challenges/${this.args.challenge.id}`,
+          `/admin/plugins/discourse-daily-challenge/challenges/${this.args.challenge.id}`,
           { type: "PUT", data }
         );
         this.toasts.success({
           duration: "short",
-          data: { message: i18n("fitness_challenge.admin.challenges.updated") },
+          data: { message: i18n("daily_challenge.admin.challenges.updated") },
         });
       } else {
         result = await ajax(
-          "/admin/plugins/discourse-fitness-challenge/challenges",
+          "/admin/plugins/discourse-daily-challenge/challenges",
           { type: "POST", data }
         );
         this.toasts.success({
           duration: "short",
-          data: { message: i18n("fitness_challenge.admin.challenges.created") },
+          data: { message: i18n("daily_challenge.admin.challenges.created") },
         });
       }
       this.args.onSave?.(result.challenge);
       if (!this.isEditing) {
         this.router.transitionTo(
-          "adminPlugins.show.discourse-fitness-challenge-challenges.show",
+          "adminPlugins.show.discourse-daily-challenge-challenges.show",
           result.challenge.id
         );
       }
@@ -311,23 +311,23 @@ export default class AdminFitnessChallengeForm extends Component {
   }
 
   <template>
-    <div class="fitness-challenge-form">
+    <div class="daily-challenge-form">
       {{#if this.isEditing}}
         <BackButton
-          @route="adminPlugins.show.discourse-fitness-challenge-challenges"
-          @label="fitness_challenge.admin.challenges.title"
+          @route="adminPlugins.show.discourse-daily-challenge-challenges"
+          @label="daily_challenge.admin.challenges.title"
         />
       {{/if}}
 
       <Form
         @data={{this.formData}}
         @onSubmit={{this.onSubmit}}
-        class="fitness-challenge-form__fields"
+        class="daily-challenge-form__fields"
         as |form|
       >
         <form.Field
           @name="topic_id"
-          @title={{i18n "fitness_challenge.admin.form.topic_id"}}
+          @title={{i18n "daily_challenge.admin.form.topic_id"}}
           @validation="required"
           @type="input-number"
           @onSet={{this.handleTopicIdChange}}
@@ -335,39 +335,39 @@ export default class AdminFitnessChallengeForm extends Component {
         >
           <field.Control
             min="1"
-            placeholder={{i18n "fitness_challenge.admin.form.topic_id_placeholder"}}
+            placeholder={{i18n "daily_challenge.admin.form.topic_id_placeholder"}}
           />
         </form.Field>
 
         {{#if (eq this.topicFetchState "loading")}}
           <p class="fcd-topic-preview fcd-topic-preview--loading">
-            {{i18n "fitness_challenge.admin.form.topic_loading"}}
+            {{i18n "daily_challenge.admin.form.topic_loading"}}
           </p>
         {{else if (eq this.topicFetchState "found")}}
           <p class="fcd-topic-preview fcd-topic-preview--found">
-            {{i18n "fitness_challenge.admin.form.topic_found" title=this.topicTitle}}
+            {{i18n "daily_challenge.admin.form.topic_found" title=this.topicTitle}}
           </p>
         {{else if (eq this.topicFetchState "error")}}
           <p class="fcd-topic-preview fcd-topic-preview--error">
-            {{i18n "fitness_challenge.admin.form.topic_not_found"}}
+            {{i18n "daily_challenge.admin.form.topic_not_found"}}
           </p>
         {{/if}}
 
         <form.Field
           @name="hashtag"
-          @title={{i18n "fitness_challenge.admin.form.hashtag"}}
+          @title={{i18n "daily_challenge.admin.form.hashtag"}}
           @validation="required"
           @type="input"
           as |field|
         >
           <field.Control
-            placeholder={{i18n "fitness_challenge.admin.form.hashtag_placeholder"}}
+            placeholder={{i18n "daily_challenge.admin.form.hashtag_placeholder"}}
           />
         </form.Field>
 
         <form.Field
           @name="start_date"
-          @title={{i18n "fitness_challenge.admin.form.start_date"}}
+          @title={{i18n "daily_challenge.admin.form.start_date"}}
           @validation="required"
           @type="input-date"
           as |field|
@@ -377,7 +377,7 @@ export default class AdminFitnessChallengeForm extends Component {
 
         <form.Field
           @name="end_date"
-          @title={{i18n "fitness_challenge.admin.form.end_date"}}
+          @title={{i18n "daily_challenge.admin.form.end_date"}}
           @validation="required"
           @type="input-date"
           as |field|
@@ -387,7 +387,7 @@ export default class AdminFitnessChallengeForm extends Component {
 
         <form.Field
           @name="challenge_timezone"
-          @title={{i18n "fitness_challenge.admin.form.challenge_timezone"}}
+          @title={{i18n "daily_challenge.admin.form.challenge_timezone"}}
           @type="select"
           as |field|
         >
@@ -400,7 +400,7 @@ export default class AdminFitnessChallengeForm extends Component {
 
         <form.Field
           @name="check_ins_needed"
-          @title={{i18n "fitness_challenge.admin.form.check_ins_needed"}}
+          @title={{i18n "daily_challenge.admin.form.check_ins_needed"}}
           @validation="required"
           @type="input-number"
           as |field|
@@ -410,19 +410,19 @@ export default class AdminFitnessChallengeForm extends Component {
 
         <form.Field
           @name="description"
-          @title={{i18n "fitness_challenge.admin.form.description"}}
+          @title={{i18n "daily_challenge.admin.form.description"}}
           @type="textarea"
           as |field|
         >
           <field.Control
-            placeholder={{i18n "fitness_challenge.admin.form.description_placeholder"}}
+            placeholder={{i18n "daily_challenge.admin.form.description_placeholder"}}
             rows="3"
           />
         </form.Field>
 
         <form.Field
           @name="weekly_post_enabled"
-          @title={{i18n "fitness_challenge.admin.form.weekly_post_enabled"}}
+          @title={{i18n "daily_challenge.admin.form.weekly_post_enabled"}}
           @type="toggle"
           @onSet={{this.handleWeeklyPostEnabled}}
           as |field|
@@ -433,7 +433,7 @@ export default class AdminFitnessChallengeForm extends Component {
         {{#if this.weeklyPostEnabled}}
           <form.Field
             @name="weekly_post_day"
-            @title={{i18n "fitness_challenge.admin.form.weekly_post_day"}}
+            @title={{i18n "daily_challenge.admin.form.weekly_post_day"}}
             @type="select"
             as |field|
           >
@@ -446,7 +446,7 @@ export default class AdminFitnessChallengeForm extends Component {
 
           <form.Field
             @name="weekly_post_hour"
-            @title={{i18n "fitness_challenge.admin.form.weekly_post_hour"}}
+            @title={{i18n "daily_challenge.admin.form.weekly_post_hour"}}
             @type="input-number"
             as |field|
           >
@@ -456,7 +456,7 @@ export default class AdminFitnessChallengeForm extends Component {
 
         <form.Field
           @name="award_badge"
-          @title={{i18n "fitness_challenge.admin.form.award_badge"}}
+          @title={{i18n "daily_challenge.admin.form.award_badge"}}
           @type="toggle"
           @onSet={{this.handleAwardBadge}}
           as |field|
@@ -467,24 +467,24 @@ export default class AdminFitnessChallengeForm extends Component {
         {{#if this.awardBadge}}
           <form.Field
             @name="badge_name"
-            @title={{i18n "fitness_challenge.admin.form.badge_name"}}
+            @title={{i18n "daily_challenge.admin.form.badge_name"}}
             @type="input"
             as |field|
           >
             <field.Control
-              placeholder={{i18n "fitness_challenge.admin.form.badge_name_placeholder"}}
+              placeholder={{i18n "daily_challenge.admin.form.badge_name_placeholder"}}
             />
           </form.Field>
         {{/if}}
 
         <form.Actions>
           <form.Submit
-            @label="fitness_challenge.admin.form.save"
+            @label="daily_challenge.admin.form.save"
             @disabled={{this.loading}}
           />
           {{#if @onCancel}}
             <form.Button
-              @label="fitness_challenge.admin.form.cancel"
+              @label="daily_challenge.admin.form.cancel"
               @action={{@onCancel}}
               class="btn-default"
             />

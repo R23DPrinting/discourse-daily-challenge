@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DiscourseFitnessChallenge
+module DiscourseDailyChallenge
   module LeaderboardPoster
     def self.post_weekly_update(challenge)
       topic = challenge.topic
@@ -20,24 +20,24 @@ module DiscourseFitnessChallenge
       rows = build_leaderboard_rows(challenge)
 
       header = <<~MD
-        ## 🏋️ #{I18n.t("fitness_challenge.weekly_post.title")}
+        ## 🏋️ #{I18n.t("daily_challenge.weekly_post.title")}
 
-        **#{I18n.t("fitness_challenge.weekly_post.period", start: week_start.strftime("%b %-d"), finish: week_end.strftime("%b %-d, %Y"))}**
+        **#{I18n.t("daily_challenge.weekly_post.period", start: week_start.strftime("%b %-d"), finish: week_end.strftime("%b %-d, %Y"))}**
 
-        #{I18n.t("fitness_challenge.weekly_post.days_elapsed", elapsed: challenge.elapsed_days, total: (challenge.end_date - challenge.start_date).to_i)}
+        #{I18n.t("daily_challenge.weekly_post.days_elapsed", elapsed: challenge.elapsed_days, total: (challenge.end_date - challenge.start_date).to_i)}
 
-        | | #{I18n.t("fitness_challenge.weekly_post.user")} | #{I18n.t("fitness_challenge.weekly_post.check_ins")} | #{I18n.t("fitness_challenge.weekly_post.goal")} | #{I18n.t("fitness_challenge.weekly_post.progress")} |
+        | | #{I18n.t("daily_challenge.weekly_post.user")} | #{I18n.t("daily_challenge.weekly_post.check_ins")} | #{I18n.t("daily_challenge.weekly_post.goal")} | #{I18n.t("daily_challenge.weekly_post.progress")} |
         |:---:|---|:---:|:---:|:---:|
       MD
 
       body =
         if rows.empty?
-          I18n.t("fitness_challenge.weekly_post.no_participants")
+          I18n.t("daily_challenge.weekly_post.no_participants")
         else
           rows.join("\n")
         end
 
-      header + body + "\n\n#{I18n.t("fitness_challenge.weekly_post.footer")}"
+      header + body + "\n\n#{I18n.t("daily_challenge.weekly_post.footer")}"
     end
 
     def self.build_leaderboard_rows(challenge)

@@ -33,12 +33,12 @@ export default class AdminCheckInForm extends Component {
     this.loading = true;
     try {
       const result = await ajax(
-        `/admin/plugins/discourse-fitness-challenge/challenges/${this.args.challengeId}/check_ins`,
+        `/admin/plugins/discourse-daily-challenge/challenges/${this.args.challengeId}/check_ins`,
         { type: "POST", data }
       );
       this.toasts.success({
         duration: "short",
-        data: { message: i18n("fitness_challenge.admin.check_ins.added") },
+        data: { message: i18n("daily_challenge.admin.check_ins.added") },
       });
       this.args.onSave?.(result.check_in);
     } catch (err) {
@@ -49,11 +49,11 @@ export default class AdminCheckInForm extends Component {
   }
 
   <template>
-    <div class="fitness-check-in-form">
+    <div class="daily-check-in-form">
       <Form @data={{this.formData}} @onSubmit={{this.onSubmit}} as |form|>
         <form.Field
           @name="username"
-          @title={{i18n "fitness_challenge.admin.check_ins.user"}}
+          @title={{i18n "daily_challenge.admin.check_ins.user"}}
           @validation="required"
           @type="custom"
           as |field|
@@ -66,7 +66,7 @@ export default class AdminCheckInForm extends Component {
               @options={{hash
                 maximum=1
                 excludeGroups=true
-                filterPlaceholder="fitness_challenge.admin.check_ins.user_search_placeholder"
+                filterPlaceholder="daily_challenge.admin.check_ins.user_search_placeholder"
               }}
             />
           </field.Control>
@@ -74,7 +74,7 @@ export default class AdminCheckInForm extends Component {
 
         <form.Field
           @name="check_in_date"
-          @title={{i18n "fitness_challenge.admin.check_ins.date"}}
+          @title={{i18n "daily_challenge.admin.check_ins.date"}}
           @validation="required"
           @type="input-date"
           as |field|
@@ -84,11 +84,11 @@ export default class AdminCheckInForm extends Component {
 
         <form.Actions>
           <form.Submit
-            @label="fitness_challenge.admin.check_ins.add"
+            @label="daily_challenge.admin.check_ins.add"
             @disabled={{this.loading}}
           />
           <form.Button
-            @label="fitness_challenge.admin.form.cancel"
+            @label="daily_challenge.admin.form.cancel"
             @action={{@onCancel}}
             class="btn-default"
           />

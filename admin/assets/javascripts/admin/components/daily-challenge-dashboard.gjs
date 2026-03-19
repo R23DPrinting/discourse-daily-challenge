@@ -29,7 +29,7 @@ class ProgressBar extends Component {
 }
 
 // Renders one active challenge: stats tiles + expandable leaderboard rows.
-class FitnessChallengeSection extends Component {
+class DailyChallengeSection extends Component {
   @tracked selectedUserId = null;
 
   get challenge() {
@@ -123,7 +123,7 @@ class FitnessChallengeSection extends Component {
         {{/if}}
         <span class="fcd-challenge-meta__progress">
           {{i18n
-            "fitness_challenge.dashboard.day_progress"
+            "daily_challenge.dashboard.day_progress"
             elapsed=this.challenge.elapsed_days
             total=this.challenge.total_days
           }}
@@ -132,15 +132,15 @@ class FitnessChallengeSection extends Component {
 
       <DStatTiles class="fcd-stats" as |tiles|>
         <tiles.Tile
-          @label={{i18n "fitness_challenge.dashboard.stats.participants"}}
+          @label={{i18n "daily_challenge.dashboard.stats.participants"}}
           @value={{this.stats.total_participants}}
         />
         <tiles.Tile
-          @label={{i18n "fitness_challenge.dashboard.stats.avg_check_ins"}}
+          @label={{i18n "daily_challenge.dashboard.stats.avg_check_ins"}}
           @value={{this.stats.avg_check_ins}}
         />
         <tiles.Tile
-          @label={{i18n "fitness_challenge.dashboard.stats.progress"}}
+          @label={{i18n "daily_challenge.dashboard.stats.progress"}}
           @value={{this.stats.progress_pct}}
         />
       </DStatTiles>
@@ -151,19 +151,19 @@ class FitnessChallengeSection extends Component {
             <thead>
               <tr>
                 <th class="fcd-leaderboard__th--rank">
-                  {{i18n "fitness_challenge.dashboard.col.rank"}}
+                  {{i18n "daily_challenge.dashboard.col.rank"}}
                 </th>
                 <th class="fcd-leaderboard__th--user">
-                  {{i18n "fitness_challenge.dashboard.col.participant"}}
+                  {{i18n "daily_challenge.dashboard.col.participant"}}
                 </th>
                 <th class="fcd-leaderboard__th--checkins">
-                  {{i18n "fitness_challenge.dashboard.col.check_ins"}}
+                  {{i18n "daily_challenge.dashboard.col.check_ins"}}
                 </th>
                 <th class="fcd-leaderboard__th--streak">
-                  {{i18n "fitness_challenge.dashboard.col.streak"}}
+                  {{i18n "daily_challenge.dashboard.col.streak"}}
                 </th>
                 <th class="fcd-leaderboard__th--completion">
-                  {{i18n "fitness_challenge.dashboard.col.completion"}}
+                  {{i18n "daily_challenge.dashboard.col.completion"}}
                 </th>
               </tr>
             </thead>
@@ -215,7 +215,7 @@ class FitnessChallengeSection extends Component {
                       <div class="fcd-history">
                         <p class="fcd-history__summary">
                           {{i18n
-                            "fitness_challenge.dashboard.history.summary"
+                            "daily_challenge.dashboard.history.summary"
                             username=entry.username
                             count=entry.total_check_ins
                             streak=entry.streak
@@ -249,14 +249,14 @@ class FitnessChallengeSection extends Component {
         </div>
       {{else}}
         <p class="admin-plugin-config-area__empty-list">
-          {{i18n "fitness_challenge.dashboard.no_participants"}}
+          {{i18n "daily_challenge.dashboard.no_participants"}}
         </p>
       {{/if}}
     </div>
   </template>
 }
 
-export default class FitnessChallengeDashboard extends Component {
+export default class DailyChallengeDashboard extends Component {
   get activeChallenges() {
     return this.args.dashboard?.active_challenges ?? [];
   }
@@ -271,27 +271,27 @@ export default class FitnessChallengeDashboard extends Component {
 
   <template>
     <DBreadcrumbsItem
-      @path="/admin/plugins/discourse-fitness-challenge/dashboard"
-      @label={{i18n "fitness_challenge.dashboard.title"}}
+      @path="/admin/plugins/discourse-daily-challenge/dashboard"
+      @label={{i18n "daily_challenge.dashboard.title"}}
     />
 
-    <div class="fitness-challenge-dashboard admin-detail">
-      <DPageSubheader @titleLabel={{i18n "fitness_challenge.dashboard.title"}} />
+    <div class="daily-challenge-dashboard admin-detail">
+      <DPageSubheader @titleLabel={{i18n "daily_challenge.dashboard.title"}} />
 
       {{#if (gt this.activeChallenges.length 0)}}
         {{#each this.activeChallenges as |data|}}
-          <FitnessChallengeSection @data={{data}} />
+          <DailyChallengeSection @data={{data}} />
         {{/each}}
       {{else}}
         <p class="admin-plugin-config-area__empty-list">
-          {{i18n "fitness_challenge.dashboard.no_active_challenge"}}
+          {{i18n "daily_challenge.dashboard.no_active_challenge"}}
         </p>
       {{/if}}
 
       {{#if (gt this.archivedChallenges.length 0)}}
         <div class="fcd-archived">
           <h3 class="fcd-archived__title">
-            {{i18n "fitness_challenge.dashboard.archived.title"}}
+            {{i18n "daily_challenge.dashboard.archived.title"}}
           </h3>
           {{#each this.archivedChallenges as |archived|}}
             <details class="fcd-archived__item">
@@ -306,7 +306,7 @@ export default class FitnessChallengeDashboard extends Component {
                 {{/if}}
                 <span class="fcd-archived__summary-dates">
                   {{i18n
-                    "fitness_challenge.dashboard.archived.dates"
+                    "daily_challenge.dashboard.archived.dates"
                     start=archived.start_date
                     end=archived.end_date
                   }}
@@ -317,7 +317,7 @@ export default class FitnessChallengeDashboard extends Component {
                 <ul class="fcd-archived__stats">
                   <li>
                     {{i18n
-                      "fitness_challenge.dashboard.archived.participants_count"
+                      "daily_challenge.dashboard.archived.participants_count"
                       count=archived.total_participants
                     }}
                   </li>
@@ -325,17 +325,17 @@ export default class FitnessChallengeDashboard extends Component {
                     <li>
                       {{avatar archived.winner imageSize="tiny"}}
                       {{i18n
-                        "fitness_challenge.dashboard.archived.winner"
+                        "daily_challenge.dashboard.archived.winner"
                         username=archived.winner.username
                         count=archived.winner.total_check_ins
                       }}
                     </li>
                   {{else}}
-                    <li>{{i18n "fitness_challenge.dashboard.archived.no_participants"}}</li>
+                    <li>{{i18n "daily_challenge.dashboard.archived.no_participants"}}</li>
                   {{/if}}
                   <li>
                     {{i18n
-                      "fitness_challenge.dashboard.archived.completion_rate"
+                      "daily_challenge.dashboard.archived.completion_rate"
                       rate=archived.completion_rate
                     }}
                   </li>
@@ -348,7 +348,7 @@ export default class FitnessChallengeDashboard extends Component {
                     rel="noopener noreferrer"
                   >
                     {{icon "arrow-up-right-from-square"}}
-                    {{i18n "fitness_challenge.dashboard.archived.view_topic"}}
+                    {{i18n "daily_challenge.dashboard.archived.view_topic"}}
                   </a>
                 {{/if}}
               </div>
@@ -356,7 +356,7 @@ export default class FitnessChallengeDashboard extends Component {
           {{/each}}
           {{#if this.archivedHasMore}}
             <p class="fcd-archived__overflow-notice">
-              {{i18n "fitness_challenge.dashboard.archived.overflow"}}
+              {{i18n "daily_challenge.dashboard.archived.overflow"}}
             </p>
           {{/if}}
         </div>

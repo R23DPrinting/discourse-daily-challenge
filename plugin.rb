@@ -1,48 +1,48 @@
 # frozen_string_literal: true
 
-# name: discourse-fitness-challenge
-# about: Run time-limited fitness challenges on your Discourse forum. Participants check in by posting with a hashtag or uploading a workout photo. Admins get a real-time leaderboard dashboard, automated weekly progress posts, and a final results post with optional badge awards.
-# version: 1.1.0
+# name: discourse-daily-challenge
+# about: Run time-limited daily challenges on your Discourse forum. Participants check in by posting with a hashtag or uploading a photo. Admins get a real-time leaderboard dashboard, automated weekly progress posts, and a final results post with optional badge awards.
+# version: 1.1.1
 # authors: Rusty
-# url: https://github.com/R23DPrinting/discourse-fitness-challenge
+# url: https://github.com/R23DPrinting/discourse-daily-challenge
 # required_version: 2.7.0
 
-enabled_site_setting :fitness_challenge_enabled
+enabled_site_setting :daily_challenge_enabled
 
 register_svg_icon "dumbbell"
 register_svg_icon "fire"
 register_svg_icon "medal"
 
-module ::DiscourseFitnessChallenge
-  PLUGIN_NAME = "discourse-fitness-challenge"
+module ::DiscourseDailyChallenge
+  PLUGIN_NAME = "discourse-daily-challenge"
 end
 
-require_relative "lib/discourse_fitness_challenge/engine"
+require_relative "lib/discourse_daily_challenge/engine"
 
 after_initialize do
   add_admin_route(
-    "fitness_challenge.admin.title",
-    "discourse-fitness-challenge",
+    "daily_challenge.admin.title",
+    "discourse-daily-challenge",
     { use_new_show_route: true },
   )
 
-  require_relative "app/models/fitness_challenge"
-  require_relative "app/models/fitness_check_in"
-  require_relative "app/serializers/fitness_challenge_serializer"
-  require_relative "app/serializers/fitness_check_in_serializer"
-  require_relative "app/controllers/discourse_fitness_challenge/admin_fitness_challenges_controller"
-  require_relative "app/controllers/discourse_fitness_challenge/admin_fitness_check_ins_controller"
-  require_relative "app/controllers/discourse_fitness_challenge/admin_fitness_dashboard_controller"
-  require_relative "lib/discourse_fitness_challenge/leaderboard_poster"
-  require_relative "jobs/scheduled/fitness_challenge_weekly_post"
-  require_relative "jobs/scheduled/fitness_challenge_final_post"
-  require_relative "lib/discourse_fitness_challenge/check_in_service"
+  require_relative "app/models/daily_challenge"
+  require_relative "app/models/daily_check_in"
+  require_relative "app/serializers/daily_challenge_serializer"
+  require_relative "app/serializers/daily_check_in_serializer"
+  require_relative "app/controllers/discourse_daily_challenge/admin_daily_challenges_controller"
+  require_relative "app/controllers/discourse_daily_challenge/admin_daily_check_ins_controller"
+  require_relative "app/controllers/discourse_daily_challenge/admin_daily_dashboard_controller"
+  require_relative "lib/discourse_daily_challenge/leaderboard_poster"
+  require_relative "jobs/scheduled/daily_challenge_weekly_post"
+  require_relative "jobs/scheduled/daily_challenge_final_post"
+  require_relative "lib/discourse_daily_challenge/check_in_service"
 
   on(:post_created) do |post, _opts, user|
-    next unless SiteSetting.fitness_challenge_enabled
+    next unless SiteSetting.daily_challenge_enabled
     next if post.post_type != Post.types[:regular]
     next if user.nil? || user.anonymous?
 
-    DiscourseFitnessChallenge::CheckInService.process(post)
+    DiscourseDailyChallenge::CheckInService.process(post)
   end
 end

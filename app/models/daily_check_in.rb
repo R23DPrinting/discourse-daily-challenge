@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-class FitnessCheckIn < ActiveRecord::Base
-  self.table_name = "fitness_check_ins"
+class DailyCheckIn < ActiveRecord::Base
+  self.table_name = "daily_check_ins"
 
-  belongs_to :challenge, class_name: "FitnessChallenge", foreign_key: :challenge_id
+  belongs_to :challenge, class_name: "DailyChallenge", foreign_key: :challenge_id
   belongs_to :user
   belongs_to :post, optional: true
 

@@ -1,43 +1,43 @@
 # frozen_string_literal: true
 
-class DiscourseFitnessChallenge::AdminFitnessChallengesController < Admin::AdminController
-  requires_plugin DiscourseFitnessChallenge::PLUGIN_NAME
+class DiscourseDailyChallenge::AdminDailyChallengesController < Admin::AdminController
+  requires_plugin DiscourseDailyChallenge::PLUGIN_NAME
 
   def index
-    challenges = FitnessChallenge.includes(:topic).order(start_date: :desc)
-    render_serialized(challenges, FitnessChallengeSerializer, root: "challenges")
+    challenges = DailyChallenge.includes(:topic).order(start_date: :desc)
+    render_serialized(challenges, DailyChallengeSerializer, root: "challenges")
   end
 
   def show
-    challenge = FitnessChallenge.includes(:topic).find_by(id: params[:id])
+    challenge = DailyChallenge.includes(:topic).find_by(id: params[:id])
     raise Discourse::NotFound unless challenge
-    render_serialized(challenge, FitnessChallengeSerializer, root: "challenge")
+    render_serialized(challenge, DailyChallengeSerializer, root: "challenge")
   end
 
   def create
-    challenge = FitnessChallenge.new(challenge_params)
+    challenge = DailyChallenge.new(challenge_params)
     if challenge.save
       sync_badge(challenge)
-      render_serialized(challenge, FitnessChallengeSerializer, root: "challenge")
+      render_serialized(challenge, DailyChallengeSerializer, root: "challenge")
     else
       render_json_error(challenge)
     end
   end
 
   def update
-    challenge = FitnessChallenge.find_by(id: params[:id])
+    challenge = DailyChallenge.find_by(id: params[:id])
     raise Discourse::NotFound unless challenge
 
     if challenge.update(challenge_params)
       sync_badge(challenge)
-      render_serialized(challenge, FitnessChallengeSerializer, root: "challenge")
+      render_serialized(challenge, DailyChallengeSerializer, root: "challenge")
     else
       render_json_error(challenge)
     end
   end
 
   def destroy
-    challenge = FitnessChallenge.find_by(id: params[:id])
+    challenge = DailyChallenge.find_by(id: params[:id])
     raise Discourse::NotFound unless challenge
 
     destroy_challenge_badge(challenge)
@@ -46,10 +46,10 @@ class DiscourseFitnessChallenge::AdminFitnessChallengesController < Admin::Admin
   end
 
   def post_leaderboard
-    challenge = FitnessChallenge.includes(:topic).find_by(id: params[:id])
+    challenge = DailyChallenge.includes(:topic).find_by(id: params[:id])
     raise Discourse::NotFound unless challenge
 
-    DiscourseFitnessChallenge::LeaderboardPoster.post_weekly_update(challenge)
+    DiscourseDailyChallenge::LeaderboardPoster.post_weekly_update(challenge)
     render json: success_json
   rescue StandardError => e
     render_json_error(e.message)
@@ -92,7 +92,7 @@ class DiscourseFitnessChallenge::AdminFitnessChallengesController < Admin::Admin
     end
   rescue StandardError => e
     Rails.logger.warn(
-      "FitnessChallenge: badge sync failed for challenge #{challenge.id}: #{e.message}",
+      "DailyChallenge: badge sync failed for challenge #{challenge.id}: #{e.message}",
     )
   end
 
@@ -111,9 +111,9 @@ class DiscourseFitnessChallenge::AdminFitnessChallengesController < Admin::Admin
   def badge_description_for(challenge)
     topic = Topic.find_by(id: challenge.topic_id)
     if topic
-      I18n.t("fitness_challenge.badge.description_with_topic", title: topic.title)
+      I18n.t("daily_challenge.badge.description_with_topic", title: topic.title)
     else
-      I18n.t("fitness_challenge.badge.description_fallback")
+      I18n.t("daily_challenge.badge.description_fallback")
     end
   end
 

@@ -5,7 +5,7 @@ import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { i18n } from "discourse-i18n";
 
-export default class AdminFitnessChallengeChallengesIndexController extends Controller {
+export default class AdminDailyChallengeChallengesIndexController extends Controller {
   @service dialog;
   @service toasts;
   @service router;
@@ -20,17 +20,17 @@ export default class AdminFitnessChallengeChallengesIndexController extends Cont
   @action
   destroyChallenge(challenge) {
     this.dialog.deleteConfirm({
-      message: i18n("fitness_challenge.admin.challenges.confirm_delete"),
+      message: i18n("daily_challenge.admin.challenges.confirm_delete"),
       didConfirm: () => {
         return ajax(
-          `/admin/plugins/discourse-fitness-challenge/challenges/${challenge.id}`,
+          `/admin/plugins/discourse-daily-challenge/challenges/${challenge.id}`,
           { type: "DELETE" }
         )
           .then(() => {
             this.toasts.success({
               duration: "short",
               data: {
-                message: i18n("fitness_challenge.admin.challenges.deleted"),
+                message: i18n("daily_challenge.admin.challenges.deleted"),
               },
             });
             this.router.refresh();

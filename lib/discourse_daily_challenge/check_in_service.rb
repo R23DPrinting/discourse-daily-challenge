@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-module DiscourseFitnessChallenge
+module DiscourseDailyChallenge
   class CheckInService
     IMAGE_EXTENSIONS = %w[jpg jpeg png gif webp heic avif].freeze
 
     def self.process(post)
       return if post.topic_id.nil?
 
-      challenge = FitnessChallenge.find_by(topic_id: post.topic_id)
+      challenge = DailyChallenge.find_by(topic_id: post.topic_id)
       return unless challenge&.active?
 
       user = post.user
@@ -16,13 +16,13 @@ module DiscourseFitnessChallenge
       return unless has_hashtag?(post, challenge.hashtag) || has_image?(post)
 
       user_date = user_local_date(user)
-      return if FitnessCheckIn.exists?(
+      return if DailyCheckIn.exists?(
         challenge_id: challenge.id,
         user_id: user.id,
         check_in_date: user_date,
       )
 
-      FitnessCheckIn.create!(
+      DailyCheckIn.create!(
         challenge_id: challenge.id,
         user_id: user.id,
         check_in_date: user_date,
@@ -30,7 +30,7 @@ module DiscourseFitnessChallenge
         admin_added: false,
       )
     rescue StandardError => e
-      Rails.logger.error("FitnessChallenge check-in error for post #{post.id}: #{e.message}")
+      Rails.logger.error("DailyChallenge check-in error for post #{post.id}: #{e.message}")
     end
 
     def self.has_hashtag?(post, hashtag)

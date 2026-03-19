@@ -3,12 +3,12 @@ export default {
   path: "/plugins",
   map() {
     this.route(
-      "discourse-fitness-challenge-challenges",
+      "discourse-daily-challenge-challenges",
       { path: "challenges" },
       function () {
         this.route("show", { path: "/:id" });
       }
     );
-    this.route("discourse-fitness-challenge-dashboard", { path: "dashboard" });
+    this.route("discourse-daily-challenge-dashboard", { path: "dashboard" });
   },
 };

@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
 module Jobs
-  class FitnessChallengeFinalPost < ::Jobs::Scheduled
+  class DailyChallengeFinalPost < ::Jobs::Scheduled
     every 1.day
 
     def execute(_args)
-      return unless SiteSetting.fitness_challenge_enabled
+      return unless SiteSetting.daily_challenge_enabled
 
       # Cast a ±1-day net in UTC so no challenge is missed due to timezone
       # offsets, then do a precise per-challenge timezone check in Ruby.
       yesterday_utc = Date.current - 1
 
-      FitnessChallenge
+      DailyChallenge
         .where(
           end_date: (yesterday_utc - 1)..(yesterday_utc + 1),
           final_post_sent: false,
@@ -24,7 +24,7 @@ module Jobs
           post_final_results(challenge)
         rescue StandardError => e
           Rails.logger.error(
-            "FitnessChallengeFinalPost error for challenge #{challenge.id}: #{e.message}\n#{e.backtrace.first(5).join("\n")}",
+            "DailyChallengeFinalPost error for challenge #{challenge.id}: #{e.message}\n#{e.backtrace.first(5).join("\n")}",
           )
         end
     end
@@ -69,7 +69,7 @@ module Jobs
         BadgeGranter.grant(badge, entry[:user], granted_by: Discourse.system_user)
       rescue StandardError => e
         Rails.logger.error(
-          "FitnessChallenge badge grant error for user #{entry[:user].id}: #{e.message}",
+          "DailyChallenge badge grant error for user #{entry[:user].id}: #{e.message}",
         )
       end
     end
@@ -78,33 +78,33 @@ module Jobs
       completed = eligible.size
 
       lines = []
-      lines << "## #{I18n.t("fitness_challenge.final_post.title")}"
+      lines << "## #{I18n.t("daily_challenge.final_post.title")}"
       lines << ""
-      lines << I18n.t("fitness_challenge.final_post.intro", hashtag: challenge.hashtag)
+      lines << I18n.t("daily_challenge.final_post.intro", hashtag: challenge.hashtag)
       lines << ""
 
       if eligible.any?
-        lines << I18n.t("fitness_challenge.final_post.eligible_header")
+        lines << I18n.t("daily_challenge.final_post.eligible_header")
         lines << ""
         eligible.each do |entry|
           lines << I18n.t(
-            "fitness_challenge.final_post.row",
+            "daily_challenge.final_post.row",
             username: entry[:user].username,
             count: entry[:count],
           )
         end
         lines << ""
-        lines << I18n.t("fitness_challenge.final_post.congrats")
+        lines << I18n.t("daily_challenge.final_post.congrats")
       else
         lines << I18n.t(
-          "fitness_challenge.final_post.no_completions",
+          "daily_challenge.final_post.no_completions",
           needed: challenge.check_ins_needed,
         )
       end
 
       lines << ""
       lines << I18n.t(
-        "fitness_challenge.final_post.summary",
+        "daily_challenge.final_post.summary",
         completed: completed,
         total: total_participants,
         needed: challenge.check_ins_needed,

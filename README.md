@@ -1,4 +1,4 @@
-# Discourse Fitness Challenge
+# Discourse Daily Challenge
 
 ![Version](https://img.shields.io/badge/version-v1.1.1-blue)
 
@@ -36,7 +36,7 @@ hooks:
     - exec:
         cd: $home
         cmd:
-          - git clone https://github.com/R23DPrinting/discourse-fitness-challenge.git plugins/discourse-fitness-challenge
+          - git clone https://github.com/R23DPrinting/discourse-daily-challenge.git plugins/discourse-daily-challenge
 ```
 
 Then rebuild your container:
@@ -51,7 +51,7 @@ Then rebuild your container:
 
 | Setting | Description |
 |---|---|
-| `fitness_challenge_enabled` | Master on/off switch for the plugin (default: enabled) |
+| `daily_challenge_enabled` | Master on/off switch for the plugin (default: enabled) |
 
 ### Creating a Challenge
 
@@ -151,7 +151,7 @@ Manually added check-ins are marked with an "Admin" source label in the check-in
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes, following the [Discourse plugin development guide](https://meta.discourse.org/t/beginners-guide-to-creating-discourse-plugins/30515)
-4. Run the test suite: `bin/rspec plugins/discourse-fitness-challenge`
+4. Run the test suite: `bin/rspec plugins/discourse-daily-challenge`
 5. Lint your changes: `bin/lint --fix --recent`
 6. Open a pull request
 

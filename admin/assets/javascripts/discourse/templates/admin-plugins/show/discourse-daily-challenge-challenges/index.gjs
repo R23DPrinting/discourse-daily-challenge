@@ -4,31 +4,31 @@ import DBreadcrumbsItem from "discourse/components/d-breadcrumbs-item";
 import DButton from "discourse/components/d-button";
 import DPageSubheader from "discourse/components/d-page-subheader";
 import { i18n } from "discourse-i18n";
-import AdminFitnessChallengeForm from "discourse/plugins/discourse-fitness-challenge/admin/components/admin-fitness-challenge-form";
+import AdminDailyChallengeForm from "discourse/plugins/discourse-daily-challenge/admin/components/admin-daily-challenge-form";
 
 export default <template>
   <DBreadcrumbsItem
-    @path="/admin/plugins/discourse-fitness-challenge"
-    @label={{i18n "fitness_challenge.admin.challenges.title"}}
+    @path="/admin/plugins/discourse-daily-challenge"
+    @label={{i18n "daily_challenge.admin.challenges.title"}}
   />
 
-  <div class="fitness-challenge-admin admin-detail">
-    <DPageSubheader @titleLabel={{i18n "fitness_challenge.admin.challenges.title"}}>
+  <div class="daily-challenge-admin admin-detail">
+    <DPageSubheader @titleLabel={{i18n "daily_challenge.admin.challenges.title"}}>
       <:actions as |actions|>
         {{#unless @controller.creatingNew}}
           <actions.Primary
-            @label="fitness_challenge.admin.challenges.new"
-            @title="fitness_challenge.admin.challenges.new"
+            @label="daily_challenge.admin.challenges.new"
+            @title="daily_challenge.admin.challenges.new"
             @icon="plus"
             @action={{fn (mut @controller.creatingNew) true}}
-            class="fitness-challenge-admin__btn-new"
+            class="daily-challenge-admin__btn-new"
           />
         {{/unless}}
       </:actions>
     </DPageSubheader>
 
     {{#if @controller.creatingNew}}
-      <AdminFitnessChallengeForm
+      <AdminDailyChallengeForm
         @onSave={{@controller.resetCreatingNew}}
         @onCancel={{@controller.resetCreatingNew}}
         @refreshRoute={{@controller.router.refresh}}
@@ -36,18 +36,18 @@ export default <template>
     {{/if}}
 
     {{#if @model.challenges.length}}
-      <table class="fitness-challenge-admin__table">
+      <table class="daily-challenge-admin__table">
         <thead>
           <tr>
-            <th>{{i18n "fitness_challenge.admin.challenges.name_col"}}</th>
-            <th>{{i18n "fitness_challenge.admin.challenges.dates_col"}}</th>
-            <th>{{i18n "fitness_challenge.admin.challenges.participants_col"}}</th>
+            <th>{{i18n "daily_challenge.admin.challenges.name_col"}}</th>
+            <th>{{i18n "daily_challenge.admin.challenges.dates_col"}}</th>
+            <th>{{i18n "daily_challenge.admin.challenges.participants_col"}}</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
           {{#each @model.challenges as |challenge|}}
-            <tr class="fitness-challenge-admin__row">
+            <tr class="daily-challenge-admin__row">
               <td>
                 <strong>#{{challenge.hashtag}}</strong>
                 {{#if challenge.topic_title}}
@@ -56,17 +56,17 @@ export default <template>
               </td>
               <td>{{challenge.start_date}} – {{challenge.end_date}}</td>
               <td>{{challenge.participant_count}}</td>
-              <td class="fitness-challenge-admin__actions">
+              <td class="daily-challenge-admin__actions">
                 <LinkTo
-                  @route="adminPlugins.show.discourse-fitness-challenge-challenges.show"
+                  @route="adminPlugins.show.discourse-daily-challenge-challenges.show"
                   @model={{challenge.id}}
                   class="btn btn-small btn-default"
-                >{{i18n "fitness_challenge.admin.challenges.edit"}}</LinkTo>
+                >{{i18n "daily_challenge.admin.challenges.edit"}}</LinkTo>
                 <DButton
                   @icon="trash-can"
                   @action={{fn @controller.destroyChallenge challenge}}
                   class="btn-small btn-danger"
-                  @title="fitness_challenge.admin.challenges.delete"
+                  @title="daily_challenge.admin.challenges.delete"
                 />
               </td>
             </tr>
@@ -76,9 +76,9 @@ export default <template>
     {{else}}
       {{#unless @controller.creatingNew}}
         <div class="admin-plugin-config-area__empty-list">
-          {{i18n "fitness_challenge.admin.challenges.none"}}
+          {{i18n "daily_challenge.admin.challenges.none"}}
           <DButton
-            @label="fitness_challenge.admin.challenges.cta"
+            @label="daily_challenge.admin.challenges.cta"
             class="btn-default btn-small"
             @action={{fn (mut @controller.creatingNew) true}}
           />
