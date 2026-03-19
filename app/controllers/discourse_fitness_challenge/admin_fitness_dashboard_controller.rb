@@ -66,7 +66,7 @@ class DiscourseFitnessChallenge::AdminFitnessDashboardController < Admin::AdminC
         start_date: challenge.start_date.iso8601,
         end_date: challenge.end_date.iso8601,
         elapsed_days: challenge.elapsed_days,
-        total_days: (challenge.end_date - challenge.start_date).to_i,
+        total_days: (challenge.end_date - challenge.start_date).to_i + 1,
         topic_url: challenge.topic&.relative_url,
         topic_title: challenge.topic&.title,
       },
@@ -117,7 +117,7 @@ class DiscourseFitnessChallenge::AdminFitnessDashboardController < Admin::AdminC
   end
 
   def challenge_progress_pct(challenge)
-    total_days = (challenge.end_date - challenge.start_date).to_i
+    total_days = (challenge.end_date - challenge.start_date).to_i + 1 # end_date inclusive
     return 0 if total_days <= 0
     ((challenge.elapsed_days.to_f / total_days) * 100).round(1)
   end

@@ -62,7 +62,7 @@ Go to **Admin → Plugins → Fitness Challenge → Challenges → New Challenge
 | **Topic ID** | The ID of the Discourse topic where participants will post. The plugin fetches and displays the topic title as a confirmation after you enter the ID. |
 | **Hashtag trigger** | The hashtag (without `#`) that triggers a check-in when included in a post. Only letters, digits, and underscores are allowed. |
 | **Start date** | The first day of the challenge (inclusive). |
-| **End date** | The last day of the challenge (exclusive — the challenge runs through the end of the day before this date). Must be after the start date. |
+| **End date** | The last day of the challenge (inclusive). Check-ins are accepted through the end of this day in the challenge timezone. Must be after the start date. |
 | **Challenge timezone** | Timezone used for all date boundaries, weekly post timing, and the final post trigger. Defaults to UTC. |
 | **Check-ins needed** | The number of check-ins required to complete the challenge and qualify for the badge. |
 | **Description** | Optional internal note about the challenge (not shown to participants). |

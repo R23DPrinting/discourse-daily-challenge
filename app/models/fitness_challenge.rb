@@ -52,13 +52,14 @@ class FitnessChallenge < ActiveRecord::Base
     today = Date.current
     # ±1 day buffer so challenges in timezones offset from UTC are not
     # prematurely excluded or included at date boundaries.
-    where("start_date <= ? AND end_date > ?", today + 1, today - 1)
+    # end_date is inclusive, so a challenge is still active on end_date itself.
+    where("start_date <= ? AND end_date >= ?", today + 1, today - 1)
   }
 
   def active?
     tz = ActiveSupport::TimeZone[challenge_timezone] || Time.zone
     local_today = Time.now.in_time_zone(tz).to_date
-    local_today >= start_date && local_today < end_date
+    local_today >= start_date && local_today <= end_date
   end
 
   def end_date_after_start_date
@@ -70,7 +71,7 @@ class FitnessChallenge < ActiveRecord::Base
     tz = ActiveSupport::TimeZone[challenge_timezone] || Time.zone
     local_today = Time.now.in_time_zone(tz).to_date
     return 0 if local_today < start_date
-    total = (end_date - start_date).to_i
+    total = (end_date - start_date).to_i + 1 # end_date inclusive
     [(local_today - start_date).to_i + 1, total].min
   end
 end
