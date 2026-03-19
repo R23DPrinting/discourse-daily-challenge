@@ -28,7 +28,7 @@ hooks:
     - exec:
         cd: $home
         cmd:
-          - git clone https://github.com/rusty/discourse-fitness-challenge.git plugins/discourse-fitness-challenge
+          - git clone https://github.com/R23DPrinting/discourse-fitness-challenge.git plugins/discourse-fitness-challenge
 ```
 
 Then rebuild your container:
