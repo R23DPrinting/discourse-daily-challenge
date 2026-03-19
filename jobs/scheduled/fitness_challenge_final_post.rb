@@ -1,0 +1,108 @@
+# frozen_string_literal: true
+
+module Jobs
+  class FitnessChallengeFinalPost < ::Jobs::Scheduled
+    every 1.day
+
+    def execute(_args)
+      return unless SiteSetting.fitness_challenge_enabled
+
+      yesterday = Date.current - 1
+
+      FitnessChallenge
+        .where(end_date: yesterday, final_post_sent: false)
+        .includes(:topic)
+        .find_each do |challenge|
+          post_final_results(challenge)
+        rescue StandardError => e
+          Rails.logger.error(
+            "FitnessChallengeFinalPost error for challenge #{challenge.id}: #{e.message}\n#{e.backtrace.first(5).join("\n")}",
+          )
+        end
+    end
+
+    private
+
+    def post_final_results(challenge)
+      topic = challenge.topic
+      return unless topic
+
+      counts_by_user = challenge.check_ins.group(:user_id).order("count_all DESC").count
+      eligible = compute_eligible(challenge, counts_by_user)
+
+      PostCreator.create!(
+        Discourse.system_user,
+        topic_id: topic.id,
+        raw: build_final_post_body(challenge, eligible, counts_by_user.size),
+        skip_validations: true,
+      )
+
+      award_badges(challenge, eligible)
+      challenge.update_column(:final_post_sent, true)
+    end
+
+    def compute_eligible(challenge, counts_by_user)
+      counts_by_user
+        .select { |_user_id, count| count >= challenge.check_ins_needed }
+        .filter_map do |user_id, count|
+          user = User.find_by(id: user_id)
+          next unless user
+          { user: user, count: count }
+        end
+    end
+
+    def award_badges(challenge, eligible)
+      return unless challenge.award_badge && challenge.badge_id
+
+      badge = Badge.find_by(id: challenge.badge_id)
+      return unless badge
+
+      eligible.each do |entry|
+        BadgeGranter.grant(badge, entry[:user], granted_by: Discourse.system_user)
+      rescue StandardError => e
+        Rails.logger.error(
+          "FitnessChallenge badge grant error for user #{entry[:user].id}: #{e.message}",
+        )
+      end
+    end
+
+    def build_final_post_body(challenge, eligible, total_participants)
+      completed = eligible.size
+
+      lines = []
+      lines << "## #{I18n.t("fitness_challenge.final_post.title")}"
+      lines << ""
+      lines << I18n.t("fitness_challenge.final_post.intro", hashtag: challenge.hashtag)
+      lines << ""
+
+      if eligible.any?
+        lines << I18n.t("fitness_challenge.final_post.eligible_header")
+        lines << ""
+        eligible.each do |entry|
+          lines << I18n.t(
+            "fitness_challenge.final_post.row",
+            username: entry[:user].username,
+            count: entry[:count],
+          )
+        end
+        lines << ""
+        lines << I18n.t("fitness_challenge.final_post.congrats")
+      else
+        lines << I18n.t(
+          "fitness_challenge.final_post.no_completions",
+          needed: challenge.check_ins_needed,
+        )
+      end
+
+      lines << ""
+      lines << I18n.t(
+        "fitness_challenge.final_post.summary",
+        completed: completed,
+        total: total_participants,
+        needed: challenge.check_ins_needed,
+      )
+
+      lines.join("\n")
+    end
+  end
+end

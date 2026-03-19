@@ -1,0 +1,27 @@
+en:
+  fitness_challenge:
+    check_in:
+      already_exists: "A check-in for this user on that date already exists."
+    weekly_post:
+      title: "Weekly Fitness Challenge Leaderboard"
+      period: "Week of %{start} – %{finish}"
+      days_elapsed: "Day **%{elapsed}** of **%{total}**"
+      user: "Participant"
+      check_ins: "Check-ins"
+      goal: "Goal"
+      progress: "Progress"
+      no_participants: "*No check-ins recorded yet. Be the first!*"
+      footer: "Keep going! Use the hashtag or post a photo to check in. 🔥"
+    final_post:
+      title: "Challenge Complete — Final Results 🏆"
+      intro: "The **#%{hashtag}** fitness challenge has ended. Here are the final results!"
+      eligible_header: "### Participants who completed the challenge"
+      row: "- @%{username} — %{count} check-ins"
+      congrats: "🏆 Congratulations to everyone who completed the challenge!"
+      no_completions: "*No participants reached the %{needed} check-in goal this time. Thanks to everyone who participated!*"
+      summary: "**%{completed} out of %{total} participants** completed the challenge by reaching %{needed} check-ins."
+    badge:
+      description_with_topic: "Awarded to participants who completed all required check-ins in %{title}."
+      description_fallback: "Awarded for successfully completing a fitness challenge."
+  site_settings:
+    fitness_challenge_enabled: "Enable the Discourse Fitness Challenge plugin"
