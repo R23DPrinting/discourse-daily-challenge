@@ -3,6 +3,9 @@
 class DiscourseDailyChallenge::AdminDailyDashboardController < Admin::AdminController
   requires_plugin DiscourseDailyChallenge::PLUGIN_NAME
 
+  skip_before_action :ensure_admin
+  before_action :ensure_staff
+
   def show
     today = Date.current
 
@@ -31,7 +34,6 @@ class DiscourseDailyChallenge::AdminDailyDashboardController < Admin::AdminContr
 
   def serialize_active_challenge(challenge)
     check_ins_by_user = challenge.check_ins.group_by(&:user_id)
-    today = Date.current
 
     leaderboard =
       check_ins_by_user
@@ -45,7 +47,7 @@ class DiscourseDailyChallenge::AdminDailyDashboardController < Admin::AdminContr
             username: user.username,
             avatar_template: user.avatar_template,
             total_check_ins: dates.size,
-            streak: calculate_streak(dates, today),
+            streak: calculate_streak(dates, challenge),
             completion_pct: completion_pct(dates.size, challenge.check_ins_needed),
             check_in_dates: dates.map(&:iso8601),
           }
@@ -69,6 +71,7 @@ class DiscourseDailyChallenge::AdminDailyDashboardController < Admin::AdminContr
         total_days: (challenge.end_date - challenge.start_date).to_i + 1,
         topic_url: challenge.topic&.relative_url,
         topic_title: challenge.topic&.title,
+        check_in_interval: challenge.check_in_interval,
       },
       leaderboard: leaderboard,
       stats: {
@@ -122,8 +125,18 @@ class DiscourseDailyChallenge::AdminDailyDashboardController < Admin::AdminContr
     ((challenge.elapsed_days.to_f / total_days) * 100).round(1)
   end
 
-  def calculate_streak(sorted_dates, today)
+  def calculate_streak(sorted_dates, challenge)
+    if challenge.check_in_interval == "weekly"
+      calculate_weekly_streak(sorted_dates, challenge)
+    else
+      calculate_daily_streak(sorted_dates)
+    end
+  end
+
+  def calculate_daily_streak(sorted_dates)
     return 0 if sorted_dates.empty?
+
+    today = Date.current
     return 0 if sorted_dates.last < today - 1
 
     streak = 0
@@ -133,6 +146,38 @@ class DiscourseDailyChallenge::AdminDailyDashboardController < Admin::AdminContr
       break if date != expected
       streak += 1
       expected -= 1
+    end
+
+    streak
+  end
+
+  def calculate_weekly_streak(sorted_dates, challenge)
+    return 0 if sorted_dates.empty?
+
+    tz = ActiveSupport::TimeZone[challenge.challenge_timezone] || Time.zone
+    today = Time.now.in_time_zone(tz).to_date
+    wday = DiscourseDailyChallenge::ChallengeUtils.week_start_wday(challenge)
+
+    current_week_start = DiscourseDailyChallenge::ChallengeUtils.week_start_for_date(today, wday)
+    latest_week_start =
+      DiscourseDailyChallenge::ChallengeUtils.week_start_for_date(sorted_dates.last, wday)
+
+    # Streak is broken if the most recent check-in was more than one week ago
+    # (mirrors the daily logic: grace period of one period back)
+    return 0 if latest_week_start < current_week_start - 7
+
+    checked_weeks =
+      sorted_dates
+        .map { |d| DiscourseDailyChallenge::ChallengeUtils.week_start_for_date(d, wday) }
+        .to_set
+
+    streak = 0
+    week = [latest_week_start, current_week_start].min
+
+    loop do
+      break unless checked_weeks.include?(week)
+      streak += 1
+      week -= 7
     end
 
     streak

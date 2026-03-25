@@ -1,8 +1,8 @@
 # Discourse Daily Challenge
 
-![Version](https://img.shields.io/badge/version-v1.1.1-blue)
+![Version](https://img.shields.io/badge/version-v1.2.0-blue)
 
-A Discourse plugin for running time-limited fitness challenges. Participants check in by posting with a challenge hashtag or uploading a workout photo. Admins get a real-time leaderboard dashboard, automated weekly progress posts, a final results announcement, and optional badge awards for completers.
+A Discourse plugin for running time-limited challenges. Participants check in by posting with a challenge hashtag or uploading a photo. Admins and moderators get a real-time leaderboard dashboard, automated weekly progress posts, a final results announcement, and optional badge awards for completers.
 
 ## Screenshots
 
@@ -15,7 +15,7 @@ _Screenshots coming soon._
 ## Features
 
 - **Hashtag or photo check-ins** — participants check in by posting with the configured hashtag (e.g. `#workout`) or by uploading any image to the challenge topic
-- **One check-in per day** — enforced at both the application and database level; duplicate check-ins are silently ignored
+- **Configurable check-in interval** — daily or weekly, with configurable week start day (Sunday, Monday, or Saturday); duplicate check-ins within the same period are silently ignored
 - **Real-time admin dashboard** — shows all active challenges simultaneously, each with its own stats, leaderboard, and per-participant contribution grid
 - **Archived challenges accordion** — past challenges collapsed into an expandable section showing final participant count, winner, and completion rate
 - **Per-challenge timezone** — start/end dates, weekly post timing, and check-in windows are all evaluated in the challenge's configured timezone
@@ -24,7 +24,8 @@ _Screenshots coming soon._
 - **Badge awards** — optionally award a custom Discourse badge to every participant who reaches the check-in goal
 - **Manual leaderboard trigger** — admins can post the leaderboard at any time from the challenge management page
 - **Admin check-in management** — add or remove check-ins for any user from the admin panel (for missed posts, support requests, etc.)
-- **Per-challenge configuration** — each challenge has its own hashtag, dates, timezone, check-in goal, weekly post schedule, and badge settings
+- **Moderator access** — full moderators can access challenge management via a dedicated sidebar section with Dashboard and Challenges tabs
+- **Per-challenge configuration** — each challenge has its own hashtag, dates, timezone, check-in interval, check-in goal, weekly post schedule, and badge settings
 
 ## Installation
 
@@ -55,7 +56,7 @@ Then rebuild your container:
 
 ### Creating a Challenge
 
-Go to **Admin → Plugins → Fitness Challenge → Challenges → New Challenge**.
+Go to **Admin → Plugins → Challenges → Challenges → New Challenge**.
 
 | Field | Description |
 |---|---|
@@ -64,6 +65,8 @@ Go to **Admin → Plugins → Fitness Challenge → Challenges → New Challenge
 | **Start date** | The first day of the challenge (inclusive). |
 | **End date** | The last day of the challenge (inclusive). Check-ins are accepted through the end of this day in the challenge timezone. Must be after the start date. |
 | **Challenge timezone** | Timezone used for all date boundaries, weekly post timing, and the final post trigger. Defaults to UTC. |
+| **Check-in interval** | Whether participants check in daily or weekly. |
+| **Week start** | For weekly challenges: which day starts the week (Sunday, Monday, or Saturday). Only shown when interval is set to Weekly. |
 | **Check-ins needed** | The number of check-ins required to complete the challenge and qualify for the badge. |
 | **Description** | Optional internal note about the challenge (not shown to participants). |
 | **Enable weekly leaderboard post** | When enabled, the system automatically posts a leaderboard update to the challenge topic on a schedule. |
@@ -80,14 +83,14 @@ A check-in is recorded automatically when a participant posts in the linked topi
 2. **Image upload** — the post includes an image attachment (jpg, jpeg, png, gif, webp, heic, or avif).
 
 **Rules:**
-- Only one check-in is recorded per user per calendar day (based on the user's configured timezone in their Discourse preferences, or UTC if none is set).
+- Only one check-in is recorded per user per period: one per calendar day for daily challenges, or one per calendar week for weekly challenges (week boundaries determined by the configured week start day, evaluated in the challenge's timezone).
 - Check-ins are only recorded while the challenge is active (between start date and end date, evaluated in the challenge's timezone).
 - Anonymous users cannot check in.
 - System posts and non-regular posts are ignored.
 
 ## Admin Dashboard
 
-The dashboard (**Admin → Plugins → Fitness Challenge → Dashboard**) shows all currently active challenges. Each challenge gets its own section with:
+The dashboard (**Admin → Plugins → Challenges → Dashboard**) shows all currently active challenges. Each challenge gets its own section with:
 
 - **Challenge header** — hashtag, linked topic title, and day progress
 - **Stats tiles** — total participants, average check-ins, and overall challenge progress percentage
@@ -134,11 +137,11 @@ If **Award completion badge** is enabled and a **Badge name** is provided, the p
 2. Automatically grants the badge to every participant who reaches the check-in goal when the final results post is published
 3. Updates the badge name and description if you edit the challenge settings
 
-The badge description is automatically set to reference the linked topic title (e.g. "Awarded to participants who completed all required check-ins in March Fitness Challenge.").
+The badge description is automatically set to reference the linked topic title (e.g. "Awarded to participants who completed all required check-ins in March Challenge.").
 
 ## Admin Check-in Management
 
-Admins can manually add or remove check-ins for any user from the challenge detail page (**Admin → Plugins → Fitness Challenge → Challenges → [challenge name]**). This is useful for:
+Admins can manually add or remove check-ins for any user from the challenge detail page (**Admin → Plugins → Challenges → Challenges → [challenge name]**). This is useful for:
 
 - Adding check-ins for participants who posted outside the topic
 - Correcting missed check-ins due to technical issues
@@ -160,6 +163,13 @@ Manually added check-ins are marked with an "Admin" source label in the check-in
 MIT License. See [LICENSE](LICENSE) for details.
 
 ## Changelog
+
+### v1.2.0
+- Configurable check-in interval: daily or weekly
+- Week start setting for weekly challenges (Sunday, Monday, or Saturday)
+- Interval-aware streak calculation and labels (day streak vs week streak)
+- Full moderator access via main sidebar with Dashboard and Challenges tabs
+- Plugin renamed to "Discourse Challenges" in the admin UI
 
 ### v1.1.1
 - Multi-challenge dashboard showing all active challenges simultaneously

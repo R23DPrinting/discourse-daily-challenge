@@ -17,6 +17,7 @@ export default class AdminDailyChallengeForm extends Component {
   @tracked loading = false;
   @tracked weeklyPostEnabled;
   @tracked awardBadge;
+  @tracked checkInInterval;
   @tracked topicTitle = null;
   @tracked topicFetchState = null; // null | "loading" | "found" | "error"
 
@@ -24,6 +25,7 @@ export default class AdminDailyChallengeForm extends Component {
     super(owner, args);
     this.weeklyPostEnabled = args.challenge?.weekly_post_enabled ?? true;
     this.awardBadge = args.challenge?.award_badge ?? true;
+    this.checkInInterval = args.challenge?.check_in_interval ?? "daily";
     if (args.challenge?.topic_id) {
       this.fetchTopicTitle(args.challenge.topic_id);
     }
@@ -49,6 +51,8 @@ export default class AdminDailyChallengeForm extends Component {
         award_badge: c.award_badge ?? true,
         badge_name: c.badge_name ?? "",
         challenge_timezone: c.challenge_timezone ?? "UTC",
+        check_in_interval: c.check_in_interval ?? "daily",
+        week_start: c.week_start ?? "monday",
       };
     }
     return {
@@ -64,6 +68,8 @@ export default class AdminDailyChallengeForm extends Component {
       award_badge: true,
       badge_name: "",
       challenge_timezone: "UTC",
+      check_in_interval: "daily",
+      week_start: "monday",
     };
   }
 
@@ -233,6 +239,36 @@ export default class AdminDailyChallengeForm extends Component {
     ];
   }
 
+  get checkInIntervalOptions() {
+    return [
+      {
+        value: "daily",
+        name: i18n("daily_challenge.admin.form.check_in_interval_options.daily"),
+      },
+      {
+        value: "weekly",
+        name: i18n("daily_challenge.admin.form.check_in_interval_options.weekly"),
+      },
+    ];
+  }
+
+  get weekStartOptions() {
+    return [
+      {
+        value: "sunday",
+        name: i18n("daily_challenge.admin.form.week_start_options.sunday"),
+      },
+      {
+        value: "monday",
+        name: i18n("daily_challenge.admin.form.week_start_options.monday"),
+      },
+      {
+        value: "saturday",
+        name: i18n("daily_challenge.admin.form.week_start_options.saturday"),
+      },
+    ];
+  }
+
   async fetchTopicTitle(topicId) {
     if (!topicId) {
       this.topicTitle = null;
@@ -266,6 +302,12 @@ export default class AdminDailyChallengeForm extends Component {
   @action
   handleAwardBadge(value, { set, name }) {
     this.awardBadge = value;
+    set(name, value);
+  }
+
+  @action
+  handleCheckInInterval(value, { set, name }) {
+    this.checkInInterval = value;
     set(name, value);
   }
 
@@ -419,6 +461,35 @@ export default class AdminDailyChallengeForm extends Component {
             rows="3"
           />
         </form.Field>
+
+        <form.Field
+          @name="check_in_interval"
+          @title={{i18n "daily_challenge.admin.form.check_in_interval"}}
+          @type="select"
+          @onSet={{this.handleCheckInInterval}}
+          as |field|
+        >
+          <field.Control as |select|>
+            {{#each this.checkInIntervalOptions as |opt|}}
+              <select.Option @value={{opt.value}}>{{opt.name}}</select.Option>
+            {{/each}}
+          </field.Control>
+        </form.Field>
+
+        {{#if (eq this.checkInInterval "weekly")}}
+          <form.Field
+            @name="week_start"
+            @title={{i18n "daily_challenge.admin.form.week_start"}}
+            @type="select"
+            as |field|
+          >
+            <field.Control as |select|>
+              {{#each this.weekStartOptions as |opt|}}
+                <select.Option @value={{opt.value}}>{{opt.name}}</select.Option>
+              {{/each}}
+            </field.Control>
+          </form.Field>
+        {{/if}}
 
         <form.Field
           @name="weekly_post_enabled"

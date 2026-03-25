@@ -3,6 +3,8 @@
 class DiscourseDailyChallenge::AdminDailyCheckInsController < Admin::AdminController
   requires_plugin DiscourseDailyChallenge::PLUGIN_NAME
 
+  skip_before_action :ensure_admin
+  before_action :ensure_staff
   before_action :find_challenge
 
   def index
@@ -25,11 +27,21 @@ class DiscourseDailyChallenge::AdminDailyCheckInsController < Admin::AdminContro
         raise Discourse::InvalidParameters.new(:check_in_date)
       end
 
-    if DailyCheckIn.exists?(
-         challenge_id: @challenge.id,
-         user_id: target_user.id,
-         check_in_date: date,
-       )
+    if @challenge.check_in_interval == "weekly"
+      wday = DiscourseDailyChallenge::ChallengeUtils.week_start_wday(@challenge)
+      week_start = DiscourseDailyChallenge::ChallengeUtils.week_start_for_date(date, wday)
+      if DailyCheckIn.exists?(
+           challenge_id: @challenge.id,
+           user_id: target_user.id,
+           check_in_date: week_start..(week_start + 6),
+         )
+        return render_json_error(I18n.t("daily_challenge.check_in.already_exists_this_week"))
+      end
+    elsif DailyCheckIn.exists?(
+            challenge_id: @challenge.id,
+            user_id: target_user.id,
+            check_in_date: date,
+          )
       return render_json_error(I18n.t("daily_challenge.check_in.already_exists"))
     end
 
@@ -57,5 +69,17 @@ class DiscourseDailyChallenge::AdminDailyCheckInsController < Admin::AdminContro
   def find_challenge
     @challenge = DailyChallenge.find_by(id: params[:challenge_id])
     raise Discourse::NotFound unless @challenge
+
+    unless current_user.admin? || current_user.moderator? ||
+             (
+               @challenge.category_id &&
+                 CategoryModeratorUser.exists?(
+                   user_id: current_user.id,
+                   category_id: @challenge.category_id,
+                 )
+             )
+      render json: { error: I18n.t("daily_challenge.errors.access_denied") },
+             status: :forbidden
+    end
   end
 end

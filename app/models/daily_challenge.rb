@@ -38,6 +38,8 @@ class DailyChallenge < ActiveRecord::Base
               greater_than_or_equal_to: 0,
               less_than_or_equal_to: 23,
             }
+  validates :check_in_interval, inclusion: { in: %w[daily weekly] }
+  validates :week_start, inclusion: { in: %w[sunday monday saturday] }, allow_nil: true
   validates :badge_name, presence: true, if: :award_badge?
   validates :badge_name, length: { maximum: 100 }, allow_blank: true
   validates :challenge_timezone,

@@ -160,7 +160,11 @@ class DailyChallengeSection extends Component {
                   {{i18n "daily_challenge.dashboard.col.check_ins"}}
                 </th>
                 <th class="fcd-leaderboard__th--streak">
-                  {{i18n "daily_challenge.dashboard.col.streak"}}
+                  {{#if (eq this.challenge.check_in_interval "weekly")}}
+                    {{i18n "daily_challenge.dashboard.col.streak_week"}}
+                  {{else}}
+                    {{i18n "daily_challenge.dashboard.col.streak_day"}}
+                  {{/if}}
                 </th>
                 <th class="fcd-leaderboard__th--completion">
                   {{i18n "daily_challenge.dashboard.col.completion"}}
@@ -214,12 +218,21 @@ class DailyChallengeSection extends Component {
                     <td colspan="5">
                       <div class="fcd-history">
                         <p class="fcd-history__summary">
-                          {{i18n
-                            "daily_challenge.dashboard.history.summary"
-                            username=entry.username
-                            count=entry.total_check_ins
-                            streak=entry.streak
-                          }}
+                          {{#if (eq this.challenge.check_in_interval "weekly")}}
+                            {{i18n
+                              "daily_challenge.dashboard.history.summary_week"
+                              username=entry.username
+                              count=entry.total_check_ins
+                              streak=entry.streak
+                            }}
+                          {{else}}
+                            {{i18n
+                              "daily_challenge.dashboard.history.summary_day"
+                              username=entry.username
+                              count=entry.total_check_ins
+                              streak=entry.streak
+                            }}
+                          {{/if}}
                         </p>
                         <div class="fcd-history__grid-wrap">
                           <div class="fcd-history__grid">

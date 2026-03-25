@@ -2,6 +2,7 @@ en:
   daily_challenge:
     check_in:
       already_exists: "A check-in for this user on that date already exists."
+      already_exists_this_week: "A check-in for this user already exists during that week."
     weekly_post:
       title: "Weekly Fitness Challenge Leaderboard"
       period: "Week of %{start} – %{finish}"
@@ -23,5 +24,7 @@ en:
     badge:
       description_with_topic: "Awarded to participants who completed all required check-ins in %{title}."
       description_fallback: "Awarded for successfully completing a fitness challenge."
+    errors:
+      access_denied: "You do not have permission to manage this challenge."
   site_settings:
     daily_challenge_enabled: "Enable the Discourse Daily Challenge plugin"

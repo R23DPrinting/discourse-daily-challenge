@@ -2,7 +2,7 @@
 
 # name: discourse-daily-challenge
 # about: Run time-limited daily challenges on your Discourse forum. Participants check in by posting with a hashtag or uploading a photo. Admins get a real-time leaderboard dashboard, automated weekly progress posts, and a final results post with optional badge awards.
-# version: 1.1.1
+# version: 1.2.0
 # authors: Rusty
 # url: https://github.com/R23DPrinting/discourse-daily-challenge
 # required_version: 2.7.0
@@ -33,6 +33,7 @@ after_initialize do
   require_relative "app/controllers/discourse_daily_challenge/admin_daily_challenges_controller"
   require_relative "app/controllers/discourse_daily_challenge/admin_daily_check_ins_controller"
   require_relative "app/controllers/discourse_daily_challenge/admin_daily_dashboard_controller"
+  require_relative "lib/discourse_daily_challenge/challenge_utils"
   require_relative "lib/discourse_daily_challenge/leaderboard_poster"
   require_relative "jobs/scheduled/daily_challenge_weekly_post"
   require_relative "jobs/scheduled/daily_challenge_final_post"

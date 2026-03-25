@@ -3,19 +3,33 @@
 class DiscourseDailyChallenge::AdminDailyChallengesController < Admin::AdminController
   requires_plugin DiscourseDailyChallenge::PLUGIN_NAME
 
+  skip_before_action :ensure_admin
+  before_action :ensure_staff
+  before_action :find_and_authorize_challenge, only: %i[show update destroy post_leaderboard]
+
   def index
     challenges = DailyChallenge.includes(:topic).order(start_date: :desc)
+
+    unless current_user.admin? || current_user.moderator?
+      category_ids = CategoryModeratorUser.where(user_id: current_user.id).pluck(:category_id)
+      challenges = challenges.where(category_id: category_ids)
+    end
+
     render_serialized(challenges, DailyChallengeSerializer, root: "challenges")
   end
 
   def show
-    challenge = DailyChallenge.includes(:topic).find_by(id: params[:id])
-    raise Discourse::NotFound unless challenge
-    render_serialized(challenge, DailyChallengeSerializer, root: "challenge")
+    render_serialized(@challenge, DailyChallengeSerializer, root: "challenge")
   end
 
   def create
     challenge = DailyChallenge.new(challenge_params)
+
+    if params[:topic_id].present?
+      topic = Topic.find_by(id: params[:topic_id])
+      challenge.category_id = topic.category_id if topic
+    end
+
     if challenge.save
       sync_badge(challenge)
       render_serialized(challenge, DailyChallengeSerializer, root: "challenge")
@@ -25,37 +39,53 @@ class DiscourseDailyChallenge::AdminDailyChallengesController < Admin::AdminCont
   end
 
   def update
-    challenge = DailyChallenge.find_by(id: params[:id])
-    raise Discourse::NotFound unless challenge
+    @challenge.assign_attributes(challenge_params)
 
-    if challenge.update(challenge_params)
-      sync_badge(challenge)
-      render_serialized(challenge, DailyChallengeSerializer, root: "challenge")
+    if params[:topic_id].present?
+      topic = Topic.find_by(id: params[:topic_id])
+      @challenge.category_id = topic.category_id if topic
+    end
+
+    if @challenge.save
+      sync_badge(@challenge)
+      render_serialized(@challenge, DailyChallengeSerializer, root: "challenge")
     else
-      render_json_error(challenge)
+      render_json_error(@challenge)
     end
   end
 
   def destroy
-    challenge = DailyChallenge.find_by(id: params[:id])
-    raise Discourse::NotFound unless challenge
-
-    destroy_challenge_badge(challenge)
-    challenge.destroy
+    destroy_challenge_badge(@challenge)
+    @challenge.destroy
     render json: success_json
   end
 
   def post_leaderboard
-    challenge = DailyChallenge.includes(:topic).find_by(id: params[:id])
-    raise Discourse::NotFound unless challenge
-
-    DiscourseDailyChallenge::LeaderboardPoster.post_weekly_update(challenge)
+    DiscourseDailyChallenge::LeaderboardPoster.post_weekly_update(@challenge)
     render json: success_json
   rescue StandardError => e
     render_json_error(e.message)
   end
 
   private
+
+  def find_and_authorize_challenge
+    @challenge = DailyChallenge.includes(:topic).find_by(id: params[:id])
+    raise Discourse::NotFound unless @challenge
+
+    unless can_access_challenge?(@challenge)
+      return render json: { error: I18n.t("daily_challenge.errors.access_denied") },
+                    status: :forbidden
+    end
+  end
+
+  def can_access_challenge?(challenge)
+    return true if current_user.admin?
+    return true if current_user.moderator?
+
+    return false if challenge.category_id.nil?
+    CategoryModeratorUser.exists?(user_id: current_user.id, category_id: challenge.category_id)
+  end
 
   def challenge_params
     params.permit(
@@ -71,6 +101,8 @@ class DiscourseDailyChallenge::AdminDailyChallengesController < Admin::AdminCont
       :award_badge,
       :badge_name,
       :challenge_timezone,
+      :check_in_interval,
+      :week_start,
     )
   end
 

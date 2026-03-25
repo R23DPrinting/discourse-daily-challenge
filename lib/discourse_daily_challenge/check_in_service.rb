@@ -16,11 +16,21 @@ module DiscourseDailyChallenge
       return unless has_hashtag?(post, challenge.hashtag) || has_image?(post)
 
       user_date = user_local_date(user)
-      return if DailyCheckIn.exists?(
-        challenge_id: challenge.id,
-        user_id: user.id,
-        check_in_date: user_date,
-      )
+
+      if challenge.check_in_interval == "weekly"
+        week_start_date, week_end_date = current_week_window(challenge)
+        return if DailyCheckIn.exists?(
+          challenge_id: challenge.id,
+          user_id: user.id,
+          check_in_date: week_start_date..week_end_date,
+        )
+      else
+        return if DailyCheckIn.exists?(
+          challenge_id: challenge.id,
+          user_id: user.id,
+          check_in_date: user_date,
+        )
+      end
 
       DailyCheckIn.create!(
         challenge_id: challenge.id,
@@ -46,6 +56,14 @@ module DiscourseDailyChallenge
       tz_name = user.user_option&.timezone.presence || "UTC"
       tz = ActiveSupport::TimeZone[tz_name] || Time.zone
       Time.now.in_time_zone(tz).to_date
+    end
+
+    def self.current_week_window(challenge)
+      tz = ActiveSupport::TimeZone[challenge.challenge_timezone] || Time.zone
+      today = Time.now.in_time_zone(tz).to_date
+      wday = DiscourseDailyChallenge::ChallengeUtils.week_start_wday(challenge)
+      week_start = DiscourseDailyChallenge::ChallengeUtils.week_start_for_date(today, wday)
+      [week_start, week_start + 6]
     end
   end
 end

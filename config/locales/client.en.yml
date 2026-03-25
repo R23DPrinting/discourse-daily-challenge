@@ -1,13 +1,19 @@
 en:
   js:
+    admin:
+      site_settings:
+        categories:
+          discourse_daily_challenge: "Discourse Challenges"
     daily_challenge:
+      sidebar:
+        title: "Challenges"
       admin:
-        title: "Daily Challenges"
+        title: "Discourse Challenges"
         nav:
           dashboard: "Dashboard"
-          challenges: "Challenges"
+          challenges: "Discourse Challenges"
         challenges:
-          title: "Daily Challenges"
+          title: "Discourse Challenges"
           new: "New Challenge"
           none: "No challenges created yet."
           cta: "Create your first challenge"
@@ -39,6 +45,15 @@ en:
           weekly_post_enabled: "Enable weekly leaderboard post"
           weekly_post_day: "Post day of week"
           weekly_post_hour: "Post hour (0-23, challenge timezone)"
+          check_in_interval: "Check-in interval"
+          check_in_interval_options:
+            daily: "Daily"
+            weekly: "Weekly"
+          week_start: "Week starts on"
+          week_start_options:
+            sunday: "Sunday"
+            monday: "Monday"
+            saturday: "Saturday"
           award_badge: "Award completion badge"
           badge_name: "Badge name"
           badge_name_placeholder: "e.g. March Fitness Champion"
@@ -76,13 +91,16 @@ en:
           participant: "Participant"
           check_ins: "Check-ins"
           streak: "Streak"
+          streak_day: "Day streak"
+          streak_week: "Week streak"
           completion: "Completion"
         stats:
           participants: "Participants"
           avg_check_ins: "Avg check-ins"
           progress: "Challenge progress %"
         history:
-          summary: "%{username} · %{count} check-ins · %{streak}-day streak"
+          summary_day: "%{username} · %{count} check-ins · %{streak}-day streak"
+          summary_week: "%{username} · %{count} check-ins · %{streak}-week streak"
           mon: "M"
           wed: "W"
           fri: "F"

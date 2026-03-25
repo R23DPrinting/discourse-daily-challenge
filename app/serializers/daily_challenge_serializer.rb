@@ -20,7 +20,10 @@ class DailyChallengeSerializer < ApplicationSerializer
              :award_badge,
              :badge_name,
              :badge_id,
-             :challenge_timezone
+             :challenge_timezone,
+             :check_in_interval,
+             :week_start,
+             :category_id
 
   def topic_url
     object.topic&.relative_url
