@@ -5,6 +5,7 @@ class DiscourseDailyChallenge::AdminDailyCheckInsController < Admin::AdminContro
 
   skip_before_action :ensure_admin
   before_action :ensure_staff
+  before_action :check_mod_access
   before_action :find_challenge
 
   def index
@@ -65,6 +66,13 @@ class DiscourseDailyChallenge::AdminDailyCheckInsController < Admin::AdminContro
   end
 
   private
+
+  def check_mod_access
+    return if current_user.admin?
+    return if SiteSetting.daily_challenge_mod_access_enabled
+
+    render json: { error: I18n.t("daily_challenge.errors.access_denied") }, status: :forbidden
+  end
 
   def find_challenge
     @challenge = DailyChallenge.find_by(id: params[:challenge_id])

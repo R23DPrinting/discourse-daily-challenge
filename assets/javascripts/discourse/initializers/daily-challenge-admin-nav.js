@@ -75,6 +75,8 @@ export default {
       return;
     }
 
+    const siteSettings = container.lookup("service:site-settings");
+
     withPluginApi((api) => {
       if (currentUser.admin) {
         api.addAdminPluginConfigurationNav(PLUGIN_ID, [
@@ -87,7 +89,7 @@ export default {
             route: "adminPlugins.show.discourse-daily-challenge-challenges",
           },
         ]);
-      } else {
+      } else if (siteSettings.daily_challenge_mod_access_enabled) {
         api.addSidebarSection(
           (BaseCustomSidebarSection, BaseCustomSidebarSectionLink) => {
             return class extends BaseCustomSidebarSection {

@@ -28,3 +28,4 @@ en:
       access_denied: "You do not have permission to manage this challenge."
   site_settings:
     daily_challenge_enabled: "Enable the Discourse Daily Challenge plugin"
+    daily_challenge_mod_access_enabled: "Allow full moderators to access challenge management (dashboard and challenge list)"

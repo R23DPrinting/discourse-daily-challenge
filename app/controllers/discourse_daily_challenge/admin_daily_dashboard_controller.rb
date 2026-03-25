@@ -5,6 +5,7 @@ class DiscourseDailyChallenge::AdminDailyDashboardController < Admin::AdminContr
 
   skip_before_action :ensure_admin
   before_action :ensure_staff
+  before_action :check_mod_access
 
   def show
     today = Date.current
@@ -31,6 +32,13 @@ class DiscourseDailyChallenge::AdminDailyDashboardController < Admin::AdminContr
   end
 
   private
+
+  def check_mod_access
+    return if current_user.admin?
+    return if SiteSetting.daily_challenge_mod_access_enabled
+
+    render json: { error: I18n.t("daily_challenge.errors.access_denied") }, status: :forbidden
+  end
 
   def serialize_active_challenge(challenge)
     check_ins_by_user = challenge.check_ins.group_by(&:user_id)

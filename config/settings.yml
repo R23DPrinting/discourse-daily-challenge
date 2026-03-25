@@ -2,3 +2,7 @@ plugins:
   daily_challenge_enabled:
     default: true
     client: true
+  daily_challenge_mod_access_enabled:
+    default: true
+    type: bool
+    client: true

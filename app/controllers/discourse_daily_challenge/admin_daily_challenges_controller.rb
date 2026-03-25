@@ -5,6 +5,7 @@ class DiscourseDailyChallenge::AdminDailyChallengesController < Admin::AdminCont
 
   skip_before_action :ensure_admin
   before_action :ensure_staff
+  before_action :check_mod_access
   before_action :find_and_authorize_challenge, only: %i[show update destroy post_leaderboard]
 
   def index
@@ -68,6 +69,13 @@ class DiscourseDailyChallenge::AdminDailyChallengesController < Admin::AdminCont
   end
 
   private
+
+  def check_mod_access
+    return if current_user.admin?
+    return if SiteSetting.daily_challenge_mod_access_enabled
+
+    render json: { error: I18n.t("daily_challenge.errors.access_denied") }, status: :forbidden
+  end
 
   def find_and_authorize_challenge
     @challenge = DailyChallenge.includes(:topic).find_by(id: params[:id])
