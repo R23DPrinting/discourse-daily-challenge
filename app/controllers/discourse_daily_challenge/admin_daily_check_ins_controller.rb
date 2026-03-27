@@ -47,12 +47,20 @@ class DiscourseDailyChallenge::AdminDailyCheckInsController < Admin::AdminContro
     end
 
     check_in =
-      DailyCheckIn.create!(
-        challenge_id: @challenge.id,
-        user_id: target_user.id,
-        check_in_date: date,
-        admin_added: true,
-      )
+      begin
+        DailyCheckIn.create!(
+          challenge_id: @challenge.id,
+          user_id: target_user.id,
+          check_in_date: date,
+          admin_added: true,
+        )
+      rescue ActiveRecord::RecordNotUnique
+        msg =
+          @challenge.check_in_interval == "weekly" ?
+            I18n.t("daily_challenge.check_in.already_exists_this_week") :
+            I18n.t("daily_challenge.check_in.already_exists")
+        return render_json_error(msg, status: :unprocessable_entity)
+      end
 
     render_serialized(check_in, DailyCheckInSerializer, root: "check_in")
   end
@@ -86,13 +94,12 @@ class DiscourseDailyChallenge::AdminDailyCheckInsController < Admin::AdminContro
     @challenge = DailyChallenge.find_by(id: params[:challenge_id])
     raise Discourse::NotFound unless @challenge
 
-    unless current_user.admin? || current_user.moderator? ||
-             (
-               @challenge.category_id &&
-                 category_mod_for_category?(current_user, @challenge.category_id)
-             )
-      render json: { error: I18n.t("daily_challenge.errors.access_denied") },
-             status: :forbidden
+    unless current_user.admin? || current_user.moderator?
+      if @challenge.category_id.nil? ||
+           !category_mod_for_category?(current_user, @challenge.category_id)
+        return render json: { error: I18n.t("daily_challenge.errors.access_denied") },
+                      status: :forbidden
+      end
     end
   end
 
