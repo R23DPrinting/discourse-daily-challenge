@@ -26,6 +26,9 @@ en:
       description_fallback: "Awarded for successfully completing a fitness challenge."
     errors:
       access_denied: "You do not have permission to manage this challenge."
+      badge_name_required: "Badge name is required when awarding a completion badge."
+      category_access_denied: "You can only create challenges in categories you moderate."
   site_settings:
-    daily_challenge_enabled: "Enable the Discourse Daily Challenge plugin"
-    daily_challenge_mod_access_enabled: "Allow full moderators to access challenge management (dashboard and challenge list)"
+    daily_challenge_enabled: "Discourse Challenges enabled"
+    daily_challenge_mod_access_enabled: "Discourse Challenges mod access enabled"
+    daily_challenge_category_mod_access_enabled: "Discourse Challenges category mod access enabled"

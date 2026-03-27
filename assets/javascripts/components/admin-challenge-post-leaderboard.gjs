@@ -7,10 +7,16 @@ import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { i18n } from "discourse-i18n";
 
+const ADMIN_BASE = "/admin/plugins/discourse-daily-challenge";
+
 export default class AdminChallengePostLeaderboard extends Component {
   @service toasts;
 
   @tracked loading = false;
+
+  get apiBase() {
+    return this.args.apiBase ?? ADMIN_BASE;
+  }
 
   @action
   async postLeaderboard() {
@@ -20,7 +26,7 @@ export default class AdminChallengePostLeaderboard extends Component {
     this.loading = true;
     try {
       await ajax(
-        `/admin/plugins/discourse-daily-challenge/challenges/${this.args.challenge.id}/post_leaderboard`,
+        `${this.apiBase}/challenges/${this.args.challenge.id}/post_leaderboard`,
         { type: "POST" }
       );
       this.toasts.success({

@@ -4,6 +4,7 @@ import { i18n } from "discourse-i18n";
 
 const PLUGIN_ID = "discourse-daily-challenge";
 const PLUGIN_BASE_PATH = "/admin/plugins/discourse-daily-challenge";
+const CHALLENGES_BASE_PATH = "/challenges";
 const STAFF_NAV_ITEM_CLASS = "dc-staff-nav-item";
 
 const STAFF_NAV_LINKS = [
@@ -66,12 +67,88 @@ function injectStaffNav(activePath) {
   });
 }
 
+function buildChallengeManagerSidebarSection(
+  BaseCustomSidebarSection,
+  BaseCustomSidebarSectionLink,
+  dashboardPath,
+  challengesPath
+) {
+  return class extends BaseCustomSidebarSection {
+    get name() {
+      return "daily-challenges";
+    }
+
+    get title() {
+      return i18n("daily_challenge.sidebar.title");
+    }
+
+    get text() {
+      return i18n("daily_challenge.sidebar.title");
+    }
+
+    get links() {
+      return [
+        new (class extends BaseCustomSidebarSectionLink {
+          get name() {
+            return "daily-challenges-dashboard";
+          }
+
+          get href() {
+            return dashboardPath;
+          }
+
+          get title() {
+            return i18n("daily_challenge.admin.nav.dashboard");
+          }
+
+          get text() {
+            return i18n("daily_challenge.admin.nav.dashboard");
+          }
+
+          get prefixType() {
+            return "icon";
+          }
+
+          get prefixValue() {
+            return "chart-bar";
+          }
+        })(),
+        new (class extends BaseCustomSidebarSectionLink {
+          get name() {
+            return "daily-challenges-list";
+          }
+
+          get href() {
+            return challengesPath;
+          }
+
+          get title() {
+            return i18n("daily_challenge.admin.nav.challenges");
+          }
+
+          get text() {
+            return i18n("daily_challenge.admin.nav.challenges");
+          }
+
+          get prefixType() {
+            return "icon";
+          }
+
+          get prefixValue() {
+            return "flag";
+          }
+        })(),
+      ];
+    }
+  };
+}
+
 export default {
   name: "daily-challenge-admin-nav",
 
   initialize(container) {
     const currentUser = container.lookup("service:current-user");
-    if (!currentUser?.staff) {
+    if (!currentUser) {
       return;
     }
 
@@ -89,77 +166,16 @@ export default {
             route: "adminPlugins.show.discourse-daily-challenge-challenges",
           },
         ]);
-      } else if (siteSettings.daily_challenge_mod_access_enabled) {
+      } else if (currentUser.staff && siteSettings.daily_challenge_mod_access_enabled) {
+        // Full moderators: inject nav tabs into admin panel UI
         api.addSidebarSection(
           (BaseCustomSidebarSection, BaseCustomSidebarSectionLink) => {
-            return class extends BaseCustomSidebarSection {
-              get name() {
-                return "daily-challenges";
-              }
-
-              get title() {
-                return i18n("daily_challenge.sidebar.title");
-              }
-
-              get text() {
-                return i18n("daily_challenge.sidebar.title");
-              }
-
-              get links() {
-                return [
-                  new (class extends BaseCustomSidebarSectionLink {
-                    get name() {
-                      return "daily-challenges-dashboard";
-                    }
-
-                    get href() {
-                      return `${PLUGIN_BASE_PATH}/dashboard`;
-                    }
-
-                    get title() {
-                      return i18n("daily_challenge.admin.nav.dashboard");
-                    }
-
-                    get text() {
-                      return i18n("daily_challenge.admin.nav.dashboard");
-                    }
-
-                    get prefixType() {
-                      return "icon";
-                    }
-
-                    get prefixValue() {
-                      return "chart-bar";
-                    }
-                  })(),
-                  new (class extends BaseCustomSidebarSectionLink {
-                    get name() {
-                      return "daily-challenges-list";
-                    }
-
-                    get href() {
-                      return `${PLUGIN_BASE_PATH}/challenges`;
-                    }
-
-                    get title() {
-                      return i18n("daily_challenge.admin.nav.challenges");
-                    }
-
-                    get text() {
-                      return i18n("daily_challenge.admin.nav.challenges");
-                    }
-
-                    get prefixType() {
-                      return "icon";
-                    }
-
-                    get prefixValue() {
-                      return "flag";
-                    }
-                  })(),
-                ];
-              }
-            };
+            return buildChallengeManagerSidebarSection(
+              BaseCustomSidebarSection,
+              BaseCustomSidebarSectionLink,
+              `${PLUGIN_BASE_PATH}/dashboard`,
+              `${PLUGIN_BASE_PATH}/challenges`
+            );
           }
         );
 
@@ -174,6 +190,21 @@ export default {
             removeStaffNav();
           }
         });
+      } else if (
+        currentUser.is_challenge_manager &&
+        siteSettings.daily_challenge_category_mod_access_enabled
+      ) {
+        // Category moderators: sidebar pointing to the /challenges routes
+        api.addSidebarSection(
+          (BaseCustomSidebarSection, BaseCustomSidebarSectionLink) => {
+            return buildChallengeManagerSidebarSection(
+              BaseCustomSidebarSection,
+              BaseCustomSidebarSectionLink,
+              `${CHALLENGES_BASE_PATH}/dashboard`,
+              `${CHALLENGES_BASE_PATH}/challenges`
+            );
+          }
+        );
       }
     });
   },

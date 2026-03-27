@@ -1,6 +1,6 @@
 # Discourse Daily Challenge
 
-![Version](https://img.shields.io/badge/version-v1.2.0-blue)
+![Version](https://img.shields.io/badge/version-v1.3.0-blue)
 
 A Discourse plugin for running time-limited challenges. Participants check in by posting with a challenge hashtag or uploading a photo. Admins and moderators get a real-time leaderboard dashboard, automated weekly progress posts, a final results announcement, and optional badge awards for completers.
 
@@ -25,6 +25,7 @@ _Screenshots coming soon._
 - **Manual leaderboard trigger** — admins can post the leaderboard at any time from the challenge management page
 - **Admin check-in management** — add or remove check-ins for any user from the admin panel (for missed posts, support requests, etc.)
 - **Moderator access** — full moderators can access challenge management via a dedicated sidebar section with Dashboard and Challenges tabs
+- **Category Moderator Access** — category moderators can now manage challenges in their assigned categories via a dedicated /challenges route, separate from the admin panel
 - **Per-challenge configuration** — each challenge has its own hashtag, dates, timezone, check-in interval, check-in goal, weekly post schedule, and badge settings
 
 ## Installation
@@ -50,9 +51,11 @@ Then rebuild your container:
 
 ### Site Settings
 
-| Setting | Description |
-|---|---|
-| `daily_challenge_enabled` | Master on/off switch for the plugin (default: enabled) |
+| Setting | Default | Description |
+|---|---|---|
+| `daily_challenge_enabled` | true | Master on/off switch for the plugin |
+| `daily_challenge_mod_access_enabled` | true | Allow full site moderators to manage challenges |
+| `daily_challenge_category_mod_access_enabled` | true | Allow category moderators to manage challenges in their categories |
 
 ### Creating a Challenge
 
@@ -73,7 +76,7 @@ Go to **Admin → Plugins → Challenges → Challenges → New Challenge**.
 | **Post day of week** | Day the weekly post is published (Sunday–Saturday, in the challenge timezone). |
 | **Post hour (0-23)** | Hour the weekly post is published, in the challenge timezone. |
 | **Award completion badge** | When enabled, a Discourse badge is created and automatically granted to participants who reach the check-in goal when the challenge ends. Requires a badge name. |
-| **Badge name** | Name of the badge to create (e.g. "March Fitness Champion"). Required when "Award completion badge" is enabled. |
+| **Badge name** | Name of the badge to create (e.g. "March Fitness Champion"). Auto-populates from the topic title when a topic ID is entered. Required when "Award completion badge" is enabled. |
 
 ## How Check-ins Work
 
@@ -163,6 +166,12 @@ Manually added check-ins are marked with an "Admin" source label in the check-in
 MIT License. See [LICENSE](LICENSE) for details.
 
 ## Changelog
+
+### v1.3.0
+- **Category moderator access** — category mods can create, edit, delete, and manage check-ins for challenges in their assigned categories via /challenges/dashboard and /challenges/challenges
+- **Badge name auto-populate** — badge name field now auto-populates from the topic title when a topic ID is entered
+- **Badge name validation** — badge name is required when "Award completion badge" is toggled on; backend returns 422 instead of 500 if badge name is missing
+- **Mod/category mod access toggles** — separate site settings to enable/disable access for full mods and category mods independently
 
 ### v1.2.0
 - Configurable check-in interval: daily or weekly

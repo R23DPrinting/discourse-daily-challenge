@@ -10,6 +10,11 @@ import { popupAjaxError } from "discourse/lib/ajax-error";
 import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 
+const ADMIN_BASE = "/admin/plugins/discourse-daily-challenge";
+const ADMIN_SHOW_ROUTE =
+  "adminPlugins.show.discourse-daily-challenge-challenges.show";
+const ADMIN_INDEX_ROUTE = "adminPlugins.show.discourse-daily-challenge-challenges";
+
 export default class AdminDailyChallengeForm extends Component {
   @service toasts;
   @service router;
@@ -20,6 +25,7 @@ export default class AdminDailyChallengeForm extends Component {
   @tracked checkInInterval;
   @tracked topicTitle = null;
   @tracked topicFetchState = null; // null | "loading" | "found" | "error"
+  _formApi = null;
 
   constructor(owner, args) {
     super(owner, args);
@@ -29,6 +35,18 @@ export default class AdminDailyChallengeForm extends Component {
     if (args.challenge?.topic_id) {
       this.fetchTopicTitle(args.challenge.topic_id);
     }
+  }
+
+  get apiBase() {
+    return this.args.apiBase ?? ADMIN_BASE;
+  }
+
+  get showRoute() {
+    return this.args.showRoute ?? ADMIN_SHOW_ROUTE;
+  }
+
+  get indexRoute() {
+    return this.args.indexRoute ?? ADMIN_INDEX_ROUTE;
   }
 
   get isEditing() {
@@ -281,10 +299,18 @@ export default class AdminDailyChallengeForm extends Component {
       const data = await ajax(`/t/${topicId}.json`);
       this.topicTitle = data.title;
       this.topicFetchState = "found";
+      if (this._formApi && !this._formApi.get("badge_name")) {
+        this._formApi.set("badge_name", data.title);
+      }
     } catch {
       this.topicTitle = null;
       this.topicFetchState = "error";
     }
+  }
+
+  @action
+  registerApi(api) {
+    this._formApi = api;
   }
 
   @action
@@ -321,7 +347,7 @@ export default class AdminDailyChallengeForm extends Component {
       let result;
       if (this.isEditing) {
         result = await ajax(
-          `/admin/plugins/discourse-daily-challenge/challenges/${this.args.challenge.id}`,
+          `${this.apiBase}/challenges/${this.args.challenge.id}`,
           { type: "PUT", data }
         );
         this.toasts.success({
@@ -329,21 +355,19 @@ export default class AdminDailyChallengeForm extends Component {
           data: { message: i18n("daily_challenge.admin.challenges.updated") },
         });
       } else {
-        result = await ajax(
-          "/admin/plugins/discourse-daily-challenge/challenges",
-          { type: "POST", data }
-        );
+        result = await ajax(`${this.apiBase}/challenges`, {
+          type: "POST",
+          data,
+        });
         this.toasts.success({
           duration: "short",
           data: { message: i18n("daily_challenge.admin.challenges.created") },
         });
       }
       this.args.onSave?.(result.challenge);
+      this.router.refresh();
       if (!this.isEditing) {
-        this.router.transitionTo(
-          "adminPlugins.show.discourse-daily-challenge-challenges.show",
-          result.challenge.id
-        );
+        this.router.transitionTo(this.showRoute, result.challenge.id);
       }
     } catch (err) {
       popupAjaxError(err);
@@ -356,7 +380,7 @@ export default class AdminDailyChallengeForm extends Component {
     <div class="daily-challenge-form">
       {{#if this.isEditing}}
         <BackButton
-          @route="adminPlugins.show.discourse-daily-challenge-challenges"
+          @route={{this.indexRoute}}
           @label="daily_challenge.admin.challenges.title"
         />
       {{/if}}
@@ -364,6 +388,7 @@ export default class AdminDailyChallengeForm extends Component {
       <Form
         @data={{this.formData}}
         @onSubmit={{this.onSubmit}}
+        @onRegisterApi={{this.registerApi}}
         class="daily-challenge-form__fields"
         as |form|
       >
@@ -540,6 +565,7 @@ export default class AdminDailyChallengeForm extends Component {
           <form.Field
             @name="badge_name"
             @title={{i18n "daily_challenge.admin.form.badge_name"}}
+            @validation="required"
             @type="input"
             as |field|
           >

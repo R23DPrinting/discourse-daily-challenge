@@ -4,7 +4,7 @@ class DiscourseDailyChallenge::AdminDailyCheckInsController < Admin::AdminContro
   requires_plugin DiscourseDailyChallenge::PLUGIN_NAME
 
   skip_before_action :ensure_admin
-  before_action :ensure_staff
+  before_action :ensure_challenge_manager
   before_action :check_mod_access
   before_action :find_challenge
 
@@ -67,9 +67,17 @@ class DiscourseDailyChallenge::AdminDailyCheckInsController < Admin::AdminContro
 
   private
 
+  def ensure_challenge_manager
+    return if current_user&.admin?
+    return if current_user&.moderator?
+    return if SiteSetting.daily_challenge_category_mod_access_enabled && category_mod?(current_user)
+    raise Discourse::InvalidAccess
+  end
+
   def check_mod_access
     return if current_user.admin?
     return if SiteSetting.daily_challenge_mod_access_enabled
+    return if category_mod?(current_user)
 
     render json: { error: I18n.t("daily_challenge.errors.access_denied") }, status: :forbidden
   end
@@ -81,13 +89,27 @@ class DiscourseDailyChallenge::AdminDailyCheckInsController < Admin::AdminContro
     unless current_user.admin? || current_user.moderator? ||
              (
                @challenge.category_id &&
-                 CategoryModeratorUser.exists?(
-                   user_id: current_user.id,
-                   category_id: @challenge.category_id,
-                 )
+                 category_mod_for_category?(current_user, @challenge.category_id)
              )
       render json: { error: I18n.t("daily_challenge.errors.access_denied") },
              status: :forbidden
     end
+  end
+
+  def category_mod?(user)
+    ::CategoryModerationGroup.joins(group: :group_users).where(
+      group_users: {
+        user_id: user.id,
+      },
+    ).exists?
+  end
+
+  def category_mod_for_category?(user, category_id)
+    ::CategoryModerationGroup.joins(group: :group_users).where(
+      group_users: {
+        user_id: user.id,
+      },
+      category_id: category_id,
+    ).exists?
   end
 end

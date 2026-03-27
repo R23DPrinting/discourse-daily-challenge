@@ -2,7 +2,7 @@
 
 # name: discourse-daily-challenge
 # about: Run time-limited daily challenges on your Discourse forum. Participants check in by posting with a hashtag or uploading a photo. Admins get a real-time leaderboard dashboard, automated weekly progress posts, and a final results post with optional badge awards.
-# version: 1.2.0
+# version: 1.3.0
 # authors: Rusty
 # url: https://github.com/R23DPrinting/discourse-daily-challenge
 # required_version: 2.7.0
@@ -18,6 +18,7 @@ module ::DiscourseDailyChallenge
 end
 
 require_relative "lib/discourse_daily_challenge/engine"
+require_relative "lib/discourse_daily_challenge/challenge_manager_constraint"
 
 after_initialize do
   add_admin_route(
@@ -38,6 +39,10 @@ after_initialize do
   require_relative "jobs/scheduled/daily_challenge_weekly_post"
   require_relative "jobs/scheduled/daily_challenge_final_post"
   require_relative "lib/discourse_daily_challenge/check_in_service"
+
+  add_to_serializer(:current_user, :is_challenge_manager) do
+    ::CategoryModerationGroup.joins(group: :group_users).where(group_users: { user_id: object.id }).exists?
+  end
 
   on(:post_created) do |post, _opts, user|
     next unless SiteSetting.daily_challenge_enabled

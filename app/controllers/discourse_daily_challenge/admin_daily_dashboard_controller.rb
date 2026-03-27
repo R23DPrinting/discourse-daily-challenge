@@ -4,23 +4,25 @@ class DiscourseDailyChallenge::AdminDailyDashboardController < Admin::AdminContr
   requires_plugin DiscourseDailyChallenge::PLUGIN_NAME
 
   skip_before_action :ensure_admin
-  before_action :ensure_staff
+  before_action :ensure_challenge_manager
   before_action :check_mod_access
 
   def show
     today = Date.current
 
-    active_challenges =
-      DailyChallenge.active.includes(:topic, check_ins: :user).select(&:active?)
+    active_scope = DailyChallenge.active.includes(:topic, check_ins: :user)
+    archived_scope =
+      DailyChallenge.where("end_date < ?", today).includes(:topic).order(end_date: :desc)
 
-    archived_batch =
-      DailyChallenge
-        .where("end_date < ?", today)
-        .includes(:topic)
-        .order(end_date: :desc)
-        .limit(51)
-        .to_a
+    unless current_user.admin? || current_user.moderator?
+      cat_ids = category_mod_category_ids
+      active_scope = active_scope.where(category_id: cat_ids)
+      archived_scope = archived_scope.where(category_id: cat_ids)
+    end
 
+    active_challenges = active_scope.select(&:active?)
+
+    archived_batch = archived_scope.limit(51).to_a
     archived_has_more = archived_batch.size == 51
     archived_challenges = archived_batch.first(50)
 
@@ -33,11 +35,35 @@ class DiscourseDailyChallenge::AdminDailyDashboardController < Admin::AdminContr
 
   private
 
+  def ensure_challenge_manager
+    return if current_user&.admin?
+    return if current_user&.moderator?
+    return if SiteSetting.daily_challenge_category_mod_access_enabled && category_mod?(current_user)
+    raise Discourse::InvalidAccess
+  end
+
   def check_mod_access
     return if current_user.admin?
     return if SiteSetting.daily_challenge_mod_access_enabled
+    return if category_mod?(current_user)
 
     render json: { error: I18n.t("daily_challenge.errors.access_denied") }, status: :forbidden
+  end
+
+  def category_mod?(user)
+    ::CategoryModerationGroup.joins(group: :group_users).where(
+      group_users: {
+        user_id: user.id,
+      },
+    ).exists?
+  end
+
+  def category_mod_category_ids
+    ::CategoryModerationGroup.joins(group: :group_users).where(
+      group_users: {
+        user_id: current_user.id,
+      },
+    ).distinct.pluck(:category_id)
   end
 
   def serialize_active_challenge(challenge)

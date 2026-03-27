@@ -6,3 +6,7 @@ plugins:
     default: true
     type: bool
     client: true
+  daily_challenge_category_mod_access_enabled:
+    default: true
+    type: bool
+    client: true

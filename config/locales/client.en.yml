@@ -7,6 +7,9 @@ en:
     daily_challenge:
       sidebar:
         title: "Challenges"
+      challenges:
+        dashboard_title: "Dashboard"
+        challenges_title: "Challenges"
       admin:
         title: "Discourse Challenges"
         nav:

@@ -270,6 +270,13 @@ class DailyChallengeSection extends Component {
 }
 
 export default class DailyChallengeDashboard extends Component {
+  get breadcrumbPath() {
+    return (
+      this.args.breadcrumbPath ??
+      "/admin/plugins/discourse-daily-challenge/dashboard"
+    );
+  }
+
   get activeChallenges() {
     return this.args.dashboard?.active_challenges ?? [];
   }
@@ -284,7 +291,7 @@ export default class DailyChallengeDashboard extends Component {
 
   <template>
     <DBreadcrumbsItem
-      @path="/admin/plugins/discourse-daily-challenge/dashboard"
+      @path={{this.breadcrumbPath}}
       @label={{i18n "daily_challenge.dashboard.title"}}
     />
 
@@ -354,6 +361,7 @@ export default class DailyChallengeDashboard extends Component {
                   </li>
                 </ul>
                 {{#if archived.topic_url}}
+                  {{! template-lint-disable no-nested-interactive }}
                   <a
                     href={{archived.topic_url}}
                     class="fcd-archived__topic-link"

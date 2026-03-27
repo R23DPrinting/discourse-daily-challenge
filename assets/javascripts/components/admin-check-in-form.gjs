@@ -9,10 +9,16 @@ import { popupAjaxError } from "discourse/lib/ajax-error";
 import EmailGroupUserChooser from "discourse/select-kit/components/email-group-user-chooser";
 import { i18n } from "discourse-i18n";
 
+const ADMIN_BASE = "/admin/plugins/discourse-daily-challenge";
+
 export default class AdminCheckInForm extends Component {
   @service toasts;
 
   @tracked loading = false;
+
+  get apiBase() {
+    return this.args.apiBase ?? ADMIN_BASE;
+  }
 
   get formData() {
     return { username: null, check_in_date: "" };
@@ -33,7 +39,7 @@ export default class AdminCheckInForm extends Component {
     this.loading = true;
     try {
       const result = await ajax(
-        `/admin/plugins/discourse-daily-challenge/challenges/${this.args.challengeId}/check_ins`,
+        `${this.apiBase}/challenges/${this.args.challengeId}/check_ins`,
         { type: "POST", data }
       );
       this.toasts.success({

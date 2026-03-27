@@ -4,7 +4,7 @@ import DBreadcrumbsItem from "discourse/components/d-breadcrumbs-item";
 import DButton from "discourse/components/d-button";
 import DPageSubheader from "discourse/components/d-page-subheader";
 import { i18n } from "discourse-i18n";
-import AdminDailyChallengeForm from "discourse/plugins/discourse-daily-challenge/admin/components/admin-daily-challenge-form";
+import AdminDailyChallengeForm from "discourse/plugins/discourse-daily-challenge/components/admin-daily-challenge-form";
 
 export default <template>
   <DBreadcrumbsItem

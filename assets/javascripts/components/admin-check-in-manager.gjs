@@ -7,7 +7,9 @@ import DButton from "discourse/components/d-button";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import { i18n } from "discourse-i18n";
-import AdminCheckInForm from "discourse/plugins/discourse-daily-challenge/admin/components/admin-check-in-form";
+import AdminCheckInForm from "discourse/plugins/discourse-daily-challenge/components/admin-check-in-form";
+
+const ADMIN_BASE = "/admin/plugins/discourse-daily-challenge";
 
 export default class AdminCheckInManager extends Component {
   @service toasts;
@@ -15,6 +17,10 @@ export default class AdminCheckInManager extends Component {
 
   @tracked addingCheckIn = false;
   @tracked checkIns = this.args.challenge?.check_ins ?? [];
+
+  get apiBase() {
+    return this.args.apiBase ?? ADMIN_BASE;
+  }
 
   @action
   showAddForm() {
@@ -38,7 +44,7 @@ export default class AdminCheckInManager extends Component {
       message: i18n("daily_challenge.admin.check_ins.confirm_remove"),
       didConfirm: () => {
         return ajax(
-          `/admin/plugins/discourse-daily-challenge/challenges/${this.args.challenge.id}/check_ins/${checkIn.id}`,
+          `${this.apiBase}/challenges/${this.args.challenge.id}/check_ins/${checkIn.id}`,
           { type: "DELETE" }
         )
           .then(() => {
@@ -72,6 +78,7 @@ export default class AdminCheckInManager extends Component {
       {{#if this.addingCheckIn}}
         <AdminCheckInForm
           @challengeId={{@challenge.id}}
+          @apiBase={{this.apiBase}}
           @onSave={{this.onCheckInAdded}}
           @onCancel={{this.cancelAddForm}}
         />
