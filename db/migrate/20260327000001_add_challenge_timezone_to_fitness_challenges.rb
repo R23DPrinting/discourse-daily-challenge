@@ -2,12 +2,12 @@
 
 class AddChallengeTimezoneToFitnessChallenges < ActiveRecord::Migration[7.0]
   def up
-    unless column_exists?(:daily_challenges, :challenge_timezone)
-      add_column :daily_challenges, :challenge_timezone, :string, null: false, default: "UTC"
+    unless column_exists?(:fitness_challenges, :challenge_timezone)
+      add_column :fitness_challenges, :challenge_timezone, :string, null: false, default: "UTC"
     end
   end
 
   def down
-    remove_column :daily_challenges, :challenge_timezone if column_exists?(:daily_challenges, :challenge_timezone)
+    remove_column :fitness_challenges, :challenge_timezone if column_exists?(:fitness_challenges, :challenge_timezone)
   end
 end
