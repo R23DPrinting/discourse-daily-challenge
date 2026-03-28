@@ -1,8 +1,8 @@
 # Discourse Daily Challenge
 
-![Version](https://img.shields.io/badge/version-v1.3.0-blue)
+![Version](https://img.shields.io/badge/version-v1.4.0-blue)
 
-A Discourse plugin for running time-limited challenges. Participants check in by posting with a challenge hashtag or uploading a photo. Admins and moderators get a real-time leaderboard dashboard, automated weekly progress posts, a final results announcement, and optional badge awards for completers.
+A Discourse plugin for running time-limited challenges. Participants check in by posting with a challenge hashtag or uploading a photo. Admins and moderators get a real-time leaderboard dashboard, automated weekly progress posts, a final results announcement, optional badge awards for completers, and a bot user that sends personal DMs for check-in confirmations, reminders, and @mention commands.
 
 ## Screenshots
 
@@ -25,8 +25,9 @@ _Screenshots coming soon._
 - **Manual leaderboard trigger** — admins can post the leaderboard at any time from the challenge management page
 - **Admin check-in management** — add or remove check-ins for any user from the admin panel (for missed posts, support requests, etc.)
 - **Moderator access** — full moderators can access challenge management via a dedicated sidebar section with Dashboard and Challenges tabs
-- **Category Moderator Access** — category moderators can now manage challenges in their assigned categories via a dedicated /challenges route, separate from the admin panel
+- **Category Moderator Access** — category moderators can manage challenges in their assigned categories via a dedicated /challenges route, separate from the admin panel
 - **Per-challenge configuration** — each challenge has its own hashtag, dates, timezone, check-in interval, check-in goal, weekly post schedule, and badge settings
+- **🤖 ChallengeBot DMs** — check-in confirmation DMs with streak info and a clickable topic link, reminder DMs for participants who haven't checked in (daily: after 2+ missed days; weekly: on the last day of the week if not yet checked in), and @mention commands for personal stats — all sent as private messages from a configurable bot account
 
 ## Installation
 
@@ -56,6 +57,24 @@ Then rebuild your container:
 | `daily_challenge_enabled` | true | Master on/off switch for the plugin |
 | `daily_challenge_mod_access_enabled` | true | Allow full site moderators to manage challenges |
 | `daily_challenge_category_mod_access_enabled` | true | Allow category moderators to manage challenges in their categories |
+| `daily_challenge_bot_username` | "" | Username of the bot account that sends check-in confirmation DMs, reminder DMs, and @mention command responses |
+
+### Setting Up ChallengeBot
+
+The bot features are optional. To enable them:
+
+1. **Create a bot user account** on your Discourse server:
+   ```bash
+   rake admin:create
+   ```
+   Enter a username (e.g. `ChallengeBot`), an email address, and answer **n** when asked about admin privileges.
+
+2. **Enter the username** in **Admin → Plugins → Challenges → Settings → "Bot username"** field.
+   > ⚠️ The username is case-sensitive — enter it exactly as it appears in Discourse.
+
+3. The bot account will send all DMs (check-in confirmations, reminders, and @mention replies) from this user.
+
+If no bot username is configured, all bot features are silently disabled and challenges continue to work normally.
 
 ### Creating a Challenge
 
@@ -77,6 +96,7 @@ Go to **Admin → Plugins → Challenges → Challenges → New Challenge**.
 | **Post hour (0-23)** | Hour the weekly post is published, in the challenge timezone. |
 | **Award completion badge** | When enabled, a Discourse badge is created and automatically granted to participants who reach the check-in goal when the challenge ends. Requires a badge name. |
 | **Badge name** | Name of the badge to create (e.g. "March Fitness Champion"). Auto-populates from the topic title when a topic ID is entered. Required when "Award completion badge" is enabled. |
+| **Enable reminder DMs** | When enabled (and a bot username is configured), sends reminder DMs to participants who haven't checked in recently. Defaults to enabled. |
 
 ## How Check-ins Work
 
@@ -90,6 +110,37 @@ A check-in is recorded automatically when a participant posts in the linked topi
 - Check-ins are only recorded while the challenge is active (between start date and end date, evaluated in the challenge's timezone).
 - Anonymous users cannot check in.
 - System posts and non-regular posts are ignored.
+
+## ChallengeBot DMs
+
+When a bot username is configured, the bot sends private messages for the following events:
+
+### Check-in Confirmation
+Every time a participant successfully checks in, they receive a DM with:
+- A link to the challenge topic
+- Their current streak (e.g. "5-day streak 🔥")
+
+### Reminder DMs
+Participants who fall behind receive a reminder DM including their current check-in count and the goal:
+- **Daily challenges** — sent to participants who haven't checked in for 2 or more consecutive days
+- **Weekly challenges** — sent on the last day of the challenge week to participants who haven't checked in that week
+
+A Redis key with a 25-hour TTL prevents duplicate reminders per user per challenge per day.
+
+## @ChallengeBot Commands
+
+Members can mention the bot in any active challenge topic to receive a DM with their stats. Commands are never replied to in the topic — responses are always sent as private messages.
+
+| Command | Description |
+|---|---|
+| `@ChallengeBot status` | Stats across all active challenges you've participated in |
+| `@ChallengeBot leaderboard` | Current top-10 standings for this challenge |
+| `@ChallengeBot streak` | Your current streak for this challenge |
+| `@ChallengeBot checkins` | Full list of all your check-in dates for this challenge |
+| `@ChallengeBot progress` | Check-ins done vs needed, time remaining, on-track status |
+| `@ChallengeBot help` | List all available commands |
+
+> **Rate limit:** commands are limited to 10 per user per hour. If exceeded, the bot sends a single notice and ignores further commands until the window resets.
 
 ## Admin Dashboard
 
@@ -152,6 +203,12 @@ Admins can manually add or remove check-ins for any user from the challenge deta
 
 Manually added check-ins are marked with an "Admin" source label in the check-in list.
 
+## Roadmap
+
+### v1.5.0
+
+_Planned features TBD._
+
 ## Contributing
 
 1. Fork the repository
@@ -166,6 +223,14 @@ Manually added check-ins are marked with an "Admin" source label in the check-in
 MIT License. See [LICENSE](LICENSE) for details.
 
 ## Changelog
+
+### v1.4.0
+- **ChallengeBot check-in confirmation DMs** — participants receive a private message from the bot after each successful check-in, including a clickable link to the challenge topic and their current streak
+- **Reminder DMs** — daily challenges nudge participants after 2+ missed consecutive days; weekly challenges nudge on the last day of the week if not yet checked in. Message includes current check-in count and the goal. Duplicate DMs prevented via Redis (25-hour TTL per user/challenge/day).
+- **@mention commands** — members can mention the bot in any active challenge topic to receive stats via DM (`status`, `leaderboard`, `streak`, `checkins`, `progress`, `help`). Bot never replies in the topic — always DM only.
+- **Rate limiting** — max 10 bot commands per user per hour; exceeded requests receive a single notice DM
+- **Per-challenge reminder DMs toggle** — `reminder_dms_enabled` field on each challenge, defaults to enabled
+- **Bot username site setting** — `daily_challenge_bot_username` configures the bot account; leave blank to disable all bot features
 
 ### v1.3.0
 - **Category moderator access** — category mods can create, edit, delete, and manage check-ins for challenges in their assigned categories via /challenges/dashboard and /challenges/challenges
