@@ -23,7 +23,8 @@ class DailyChallengeSerializer < ApplicationSerializer
              :challenge_timezone,
              :check_in_interval,
              :week_start,
-             :category_id
+             :category_id,
+             :reminder_dms_enabled
 
   def topic_url
     object.topic&.relative_url

@@ -2,7 +2,7 @@
 
 # name: discourse-daily-challenge
 # about: Run time-limited daily challenges on your Discourse forum. Participants check in by posting with a hashtag or uploading a photo. Admins get a real-time leaderboard dashboard, automated weekly progress posts, and a final results post with optional badge awards.
-# version: 1.3.0
+# version: 1.4.0
 # authors: Rusty
 # url: https://github.com/R23DPrinting/discourse-daily-challenge
 # required_version: 2.7.0
@@ -21,6 +21,12 @@ require_relative "lib/discourse_daily_challenge/engine"
 require_relative "lib/discourse_daily_challenge/challenge_manager_constraint"
 
 after_initialize do
+  def DiscourseDailyChallenge.bot_user
+    username = SiteSetting.daily_challenge_bot_username.presence
+    return nil unless username
+    User.find_by(username: username)
+  end
+
   add_admin_route(
     "daily_challenge.admin.title",
     "discourse-daily-challenge",
@@ -36,9 +42,12 @@ after_initialize do
   require_relative "app/controllers/discourse_daily_challenge/admin_daily_dashboard_controller"
   require_relative "lib/discourse_daily_challenge/challenge_utils"
   require_relative "lib/discourse_daily_challenge/leaderboard_poster"
+  require_relative "lib/discourse_daily_challenge/check_in_service"
+  require_relative "app/services/discourse_daily_challenge/mention_handler"
   require_relative "jobs/scheduled/daily_challenge_weekly_post"
   require_relative "jobs/scheduled/daily_challenge_final_post"
-  require_relative "lib/discourse_daily_challenge/check_in_service"
+  require_relative "app/jobs/scheduled/discourse_daily_challenge_send_reminders"
+  require_relative "app/jobs/regular/discourse_daily_challenge_send_checkin_dm"
 
   add_to_serializer(:current_user, :is_challenge_manager) do
     ::CategoryModerationGroup.joins(group: :group_users).where(group_users: { user_id: object.id }).exists?
@@ -50,5 +59,10 @@ after_initialize do
     next if user.nil? || user.anonymous?
 
     DiscourseDailyChallenge::CheckInService.process(post)
+  end
+
+  on(:post_created) do |post|
+    next unless SiteSetting.daily_challenge_enabled
+    DiscourseDailyChallenge::MentionHandler.handle(post)
   end
 end

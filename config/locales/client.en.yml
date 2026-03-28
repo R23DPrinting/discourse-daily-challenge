@@ -68,6 +68,7 @@ en:
             thursday: "Thursday"
             friday: "Friday"
             saturday: "Saturday"
+          reminder_dms_enabled: "Enable reminder DMs"
           save: "Save challenge"
           cancel: "Cancel"
         check_ins:

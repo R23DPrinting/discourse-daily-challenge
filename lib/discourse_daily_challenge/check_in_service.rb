@@ -39,6 +39,12 @@ module DiscourseDailyChallenge
         post_id: post.id,
         admin_added: false,
       )
+
+      Jobs.enqueue(
+        :discourse_daily_challenge_send_checkin_dm,
+        user_id: user.id,
+        challenge_id: challenge.id,
+      )
     rescue StandardError => e
       Rails.logger.error("DailyChallenge check-in error for post #{post.id}: #{e.message}")
     end

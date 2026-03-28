@@ -10,3 +10,7 @@ plugins:
     default: true
     type: bool
     client: true
+  daily_challenge_bot_username:
+    default: ""
+    type: string
+    client: true

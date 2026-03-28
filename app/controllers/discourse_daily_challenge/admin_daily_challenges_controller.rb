@@ -178,6 +178,7 @@ class DiscourseDailyChallenge::AdminDailyChallengesController < Admin::AdminCont
       :challenge_timezone,
       :check_in_interval,
       :week_start,
+      :reminder_dms_enabled,
     )
   end
 

@@ -18,11 +18,13 @@ const ADMIN_INDEX_ROUTE = "adminPlugins.show.discourse-daily-challenge-challenge
 export default class AdminDailyChallengeForm extends Component {
   @service toasts;
   @service router;
+  @service siteSettings;
 
   @tracked loading = false;
   @tracked weeklyPostEnabled;
   @tracked awardBadge;
   @tracked checkInInterval;
+  @tracked reminderDmsEnabled;
   @tracked topicTitle = null;
   @tracked topicFetchState = null; // null | "loading" | "found" | "error"
   _formApi = null;
@@ -32,6 +34,7 @@ export default class AdminDailyChallengeForm extends Component {
     this.weeklyPostEnabled = args.challenge?.weekly_post_enabled ?? true;
     this.awardBadge = args.challenge?.award_badge ?? true;
     this.checkInInterval = args.challenge?.check_in_interval ?? "daily";
+    this.reminderDmsEnabled = args.challenge?.reminder_dms_enabled ?? true;
     if (args.challenge?.topic_id) {
       this.fetchTopicTitle(args.challenge.topic_id);
     }
@@ -71,6 +74,7 @@ export default class AdminDailyChallengeForm extends Component {
         challenge_timezone: c.challenge_timezone ?? "UTC",
         check_in_interval: c.check_in_interval ?? "daily",
         week_start: c.week_start ?? "monday",
+        reminder_dms_enabled: c.reminder_dms_enabled ?? true,
       };
     }
     return {
@@ -88,6 +92,7 @@ export default class AdminDailyChallengeForm extends Component {
       challenge_timezone: "UTC",
       check_in_interval: "daily",
       week_start: "monday",
+      reminder_dms_enabled: true,
     };
   }
 
@@ -338,6 +343,12 @@ export default class AdminDailyChallengeForm extends Component {
   }
 
   @action
+  handleReminderDmsEnabled(value, { set, name }) {
+    this.reminderDmsEnabled = value;
+    set(name, value);
+  }
+
+  @action
   async onSubmit(data) {
     if (this.loading) {
       return;
@@ -572,6 +583,18 @@ export default class AdminDailyChallengeForm extends Component {
             <field.Control
               placeholder={{i18n "daily_challenge.admin.form.badge_name_placeholder"}}
             />
+          </form.Field>
+        {{/if}}
+
+        {{#if this.siteSettings.daily_challenge_bot_username}}
+          <form.Field
+            @name="reminder_dms_enabled"
+            @title={{i18n "daily_challenge.admin.form.reminder_dms_enabled"}}
+            @type="toggle"
+            @onSet={{this.handleReminderDmsEnabled}}
+            as |field|
+          >
+            <field.Control />
           </form.Field>
         {{/if}}
 
