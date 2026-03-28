@@ -6,8 +6,10 @@ module DiscourseDailyChallenge
       topic = challenge.topic
       return unless topic
 
+      poster = DiscourseDailyChallenge.bot_user || Discourse.system_user
+
       PostCreator.create!(
-        Discourse.system_user,
+        poster,
         topic_id: topic.id,
         raw: build_post_body(challenge),
         skip_validations: true,

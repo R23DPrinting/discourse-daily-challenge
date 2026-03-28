@@ -38,8 +38,10 @@ module Jobs
       counts_by_user = challenge.check_ins.group(:user_id).order("count_all DESC").count
       eligible = compute_eligible(challenge, counts_by_user)
 
+      poster = DiscourseDailyChallenge.bot_user || Discourse.system_user
+
       PostCreator.create!(
-        Discourse.system_user,
+        poster,
         topic_id: topic.id,
         raw: build_final_post_body(challenge, eligible, counts_by_user.size),
         skip_validations: true,
