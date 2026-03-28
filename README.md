@@ -63,16 +63,24 @@ Then rebuild your container:
 
 The bot features are optional. To enable them:
 
-1. **Create a bot user account** on your Discourse server:
+1. **Create the bot user account.** SSH into your server and run:
    ```bash
+   cd /var/discourse
+   ./launcher enter app
    rake admin:create
    ```
-   Enter a username (e.g. `ChallengeBot`), an email address, and answer **n** when asked about admin privileges.
+   When prompted, enter the bot's email, a strong password, and answer **n** to admin privileges.
 
-2. **Enter the username** in **Admin → Plugins → Challenges → Settings → "Bot username"** field.
-   > ⚠️ The username is case-sensitive — enter it exactly as it appears in Discourse.
+2. **Approve the account and set trust level.** In **Admin → Users**, find the newly created account (it will have an auto-generated username like `user1`) and:
+   - Click **Approve** to approve the account
+   - Set **Trust Level** to **1**
 
-3. The bot account will send all DMs (check-in confirmations, reminders, and @mention replies) from this user.
+3. **Set the username.** The account will have an auto-generated username. Go to the account's profile and update the username to `ChallengeBot` (or whatever you prefer).
+
+4. **Optionally** set a profile picture for the bot account.
+
+5. **Configure the plugin.** Go to **Admin → Plugins → Challenges → Settings** and enter the username in the **Bot username** field.
+   > ⚠️ This field is case-sensitive — enter the username exactly as it appears in the profile.
 
 If no bot username is configured, all bot features are silently disabled and challenges continue to work normally.
 
